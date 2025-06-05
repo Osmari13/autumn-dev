@@ -2,6 +2,7 @@
 
 import { useGetProviders } from "@/actions/providers/actions";
 
+import { Calendar } from "@/components/ui/calendar";
 import {
   Command,
   CommandEmpty,
@@ -16,11 +17,21 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn, convertAmountToMiliunits } from "@/lib/utils";
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from "@tanstack/react-query";
+import { useDebounce } from "@uidotdev/usehooks";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { driver } from 'driver.js';
 import 'driver.js/dist/driver.css';
 import { CalendarIcon, Check, ChevronsUpDown, Loader2, RotateCw } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -30,6 +41,7 @@ import { toast } from "sonner";
 import { z } from 'zod';
 import { CreateClientDialog } from "../dialogs/CreateClientDialog";
 import { RegisterProviderDialog } from "../dialogs/RegisterProviderDialog";
+
 import { Button } from '../ui/button';
 import { Checkbox } from "../ui/checkbox";
 import { Input } from '../ui/input';
@@ -44,16 +56,16 @@ import { useGetCategories } from "@/actions/categories/actions";
 
 const formSchema = z.object({
   name: z.string(),
-  description: z.string().optional(),
-  serial: z.string(),
   quantity: z.string(),
-  priceUnit: z.string(),
-  price: z.string(),
-  image: z.string().optional(),
-  tag: z.string().optional(),
-  categoryId: z.string(),
+  subtotal: z.string(),
+  total: z.string(),
+  payMethods: z.string(),
+  status: z.string(),
+  clientId: z.string(),
   providerId: z.string(),
-  registered_by: z.string()
+  articleId: z.string(),
+  transaction_date: z.date(),
+  registered_by: z.string(),
 
 });
 
@@ -64,13 +76,12 @@ interface FormProps {
 }
 
 
-const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
+const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
   const [initialValues, setInitialValues] = useState<Article | null>(null);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: initialValues?.name,
-      description: initialValues?.description ?? ""
     },
   });
 
@@ -88,13 +99,13 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
   const { watch, setValue } = form
   const quantity = watch('quantity')
   const price = watch('price')
-  const priceUnit = watch('priceUnit')
+  const priceUnit = watch('price')
 
-  const onResetArticleForm = () => {
+  const onResetTransactionForm = () => {
     form.reset()
   }
  
-  /** Precio articulo */
+  /** Transaccion */
   useEffect(() => {
     const price = (parseFloat(quantity || "0") * parseFloat(priceUnit || "0")).toFixed(2);
     setValue('price', price);
@@ -318,7 +329,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
          
            {/* FORMULARIO DEL PASAJERO */}
            <div className='flex flex-col'>
-            <h1 className='text-3xl font-bold italic flex items-center gap-2'>Info. del Pasajero <RotateCw onClick={() => onResetArticleForm()} className="size-4 cursor-pointer hover:animate-spin" /></h1>
+            <h1 className='text-3xl font-bold italic flex items-center gap-2'>Info. del Pasajero <RotateCw onClick={() => onResetTransactionForm()} className="size-4 cursor-pointer hover:animate-spin" /></h1>
             <Separator className='w-56' />
             <div id="passanger-info-container" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 place-content-center w-full mx-auto mt-4">
               <div id="dni-number">
@@ -364,7 +375,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
           {/* FORMULARIO DE  TRANSACTION*/}
 
           <div className="flex flex-col ">
-            <h1 className='text-3xl font-bold italic flex items-center gap-3'>Info. del Transaccion <RotateCw onClick={() => onResetArticleForm()} className="size-4 cursor-pointer hover:animate-spin" /></h1>
+            <h1 className='text-3xl font-bold italic flex items-center gap-3'>Info. del Transaccion <RotateCw onClick={() => onResetTransactionForm()} className="size-4 cursor-pointer hover:animate-spin" /></h1>
             <Separator className='w-57' />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 place-content-center w-full mx-auto mt-4">
               <FormField
@@ -436,4 +447,4 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
   );
 }
 
-export default ArticleForm;
+export default TransactionForm;

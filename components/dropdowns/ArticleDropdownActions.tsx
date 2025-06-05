@@ -1,4 +1,3 @@
-import { useDeleteRoute } from "@/actions/routes/actions"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,19 +6,19 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useState } from "react"
-import RegisterFlightForm from "../forms/RegisterRouteForm"
+import PassangerForm from "../forms/CategoryForm"
 import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 
-const RouteDropdownActions = ({ id }: { id: string }) => {
+const ArticleDropdownActions = ({ id }: { id: string }) => {
   const [isDropdownMenuOpen, setIsDropdownMenuOpen] = useState<boolean>(false);
   const [isDialogOpen1, setIsDialogOpen1] = useState<boolean>(false); // Delete dialog
   const [isDialogOpen2, setIsDialogOpen2] = useState<boolean>(false); // Edit dialog
 
-  const { deleteRoute } = useDeleteRoute();
+  // const { deletePassanger } = useDeletePassanger();
 
   const handleDelete = async (id: string) => {
-    await deleteRoute.mutateAsync(id);
+    await deletePassanger.mutateAsync(id);
     setIsDialogOpen1(false);
   };
 
@@ -55,9 +54,9 @@ const RouteDropdownActions = ({ id }: { id: string }) => {
       <Dialog open={isDialogOpen1} onOpenChange={setIsDialogOpen1}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-center">¿Seguro que desea eliminar la cliente?</DialogTitle>
+            <DialogTitle className="text-center">¿Seguro que desea eliminar el pasajero?</DialogTitle>
             <DialogDescription className="text-center p-2 mb-0 pb-0">
-              Esta acción es irreversible y estaría eliminando por completo la cliente seleccionada.
+              Esta acción es irreversible y estaría eliminando por completo el pasajero seleccionado.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex flex-col gap-2 md:gap-0">
@@ -65,11 +64,11 @@ const RouteDropdownActions = ({ id }: { id: string }) => {
               Cancelar
             </Button>
             <Button
-              disabled={deleteRoute.isPending} // Disable button while mutation is pending
+              disabled={deletePassanger.isPending} // Disable button while mutation is pending
               className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
               onClick={() => handleDelete(id)}
             >
-              {deleteRoute.isPending ? <Loader2 className="animate-spin" /> : "Confirmar"} {/* Show loader */}
+              {deletePassanger.isPending ? <Loader2 className="animate-spin" /> : "Confirmar"} {/* Show loader */}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -79,16 +78,16 @@ const RouteDropdownActions = ({ id }: { id: string }) => {
       <Dialog open={isDialogOpen2} onOpenChange={setIsDialogOpen2}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Editar sucursal</DialogTitle>
+            <DialogTitle>Editar Pasajero</DialogTitle>
             <DialogDescription>
-              Actualiza los detalles de la sucursal
+              Actualice los detalles del pasajero
             </DialogDescription>
           </DialogHeader>
-          <RegisterFlightForm isEditing id={id} onClose={() => setIsDialogOpen2(false)} />
+          <PassangerForm isEditing id={id} onClose={() => setIsDialogOpen2(false)} />
         </DialogContent>
       </Dialog>
     </>
   );
 };
 
-export default RouteDropdownActions;
+export default ArticleDropdownActions;

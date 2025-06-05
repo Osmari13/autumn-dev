@@ -11,23 +11,23 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import { useState } from "react"
-import CreateBranchForm from "../forms/BranchForm"
+import TransactionForm from "../forms/TransactionForm"
 
-export function CreateBranchDialog() {
+export function CreateClientDialog() {
   const [open, setOpen] = useState(false)
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Crear Sucursal</Button>
+        <Button variant="outline" className="font-bold">Crear Cliente</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Creacion de sucursal</DialogTitle>
+          <DialogTitle>Creacion de Cliente</DialogTitle>
           <DialogDescription>
-            Crea una sucursal
+            Rellene el formulario para la creación de un cliente.
           </DialogDescription>
         </DialogHeader>
-        <CreateBranchForm onClose={() => setOpen(false)} />
+        <TransactionForm  onClose={() => setOpen(false)} />
         <DialogFooter className="sm:justify-start">
         </DialogFooter>
       </DialogContent>
