@@ -1,0 +1,147 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum PayMethods {
+  PAGO_MOVIL
+  EFECTIVO
+  TRANSFERENCIA
+}
+
+enum TransctionStatus {
+  PENDIENTE
+  PAGADO
+  CANCELADO
+}
+
+model User {
+  id         String @id @default(cuid())
+  first_name String
+  last_name  String
+  username   String @unique
+  password   String
+  user_role  Role   @default(USER)
+
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+
+model Client {
+  id         String @id @default(cuid())
+  first_name String
+  last_name  String
+
+  phone_number String?
+  // client_deb  ClientDebs?
+  transaction Transaction[]
+  registered_by String?
+  updated_by String?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Provider {
+  id         String @id @default(cuid())
+  name String
+  first_name String?
+  last_name  String?
+  
+  phone_number String?
+  registered_by String?
+  updated_by String?
+
+  article Article[]
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Category {
+  id             String  @id @default(cuid())
+  name  String  
+  description String?
+  article Article?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+}
+
+model Article{
+  id           String @id @default(cuid())
+  name         String
+  description  String?
+  serial       String @unique
+  quantity     Int
+  priceUnit    Float
+  price        Float
+  image        String
+  tag          String?
+  provider     Provider @relation(fields: [providerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  providerId   String @unique
+
+  category     Category @relation(fields: [categoryId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  categoryId     String @unique
+  transaction   Transaction[]
+  registered_by String
+  updated_by   String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// model ClientDebs {
+//   id         String @id @default(cuid())
+  
+//   client     Client @relation(fields: [clientId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+//   clientId   String @unique
+
+//   transaction Transaction?
+//   registered_by String?
+//   updated_by String?
+
+//   createdAt  DateTime @default(now())
+//   updatedAt  DateTime @updatedAt
+// }
+
+model Transaction{
+  id           String @id @default(cuid())
+  name         String
+  quantity     Int
+  subtotal     Float
+  total        Float
+  payMethods   PayMethods @default(PAGO_MOVIL)
+  status       TransctionStatus @default(PENDIENTE)
+  client       Client @relation(fields: [clientId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  clientId      String @unique
+  article       Article @relation(fields: [articleId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  articleId     String @unique
+
+  transaction_date DateTime @updatedAt
+  registered_by String
+  updated_by   String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+
+
