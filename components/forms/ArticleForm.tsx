@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/popover";
 
 import { cn, convertAmountToMiliunits } from "@/lib/utils";
-
+import Image from "next/image";
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from "@tanstack/react-query";
 import 'driver.js/dist/driver.css';
@@ -39,7 +39,7 @@ import { AmountInput } from "../misc/AmountInput";
 import { Separator } from "../ui/separator";
 import { Textarea } from "../ui/textarea";
 import { Article } from "@/types";
-import { useCreateArticle, useGetArticle } from "@/actions/articles/actions";
+import { useCreateArticle, useGetArticle, useUpdateArticle } from "@/actions/articles/actions";
 import { useGetCategories } from "@/actions/categories/actions";
 
 const formSchema = z.object({
@@ -69,13 +69,13 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: initialValues?.name,
-      description: initialValues?.description ?? ""
+        name: initialValues?.name,
+      description: initialValues?.description ?? "",
+      image: initialValues?.image ?? ""
     },
   });
 
   const { data: session } = useSession()
-  const queryClient = useQueryClient()
   const [openProvider, setOpenProvider] = useState(false)
   const [openCategory, setOpenCategory] = useState(false)
 
@@ -83,7 +83,10 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
   const { data: categories, loading: categoriesLoading, error: categoriesError } = useGetCategories()
   const { data } = useGetArticle(id ?? null);
   const { createArticle } = useCreateArticle();
+  const { updateArticle } = useUpdateArticle();
 
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const { watch, setValue } = form
   const quantity = watch('quantity')
@@ -110,38 +113,124 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
       form.setValue("quantity", data.quantity.toString());
       form.setValue("priceUnit", data.priceUnit.toString());
       form.setValue("price", data.price.toString());
-      form.setValue("image", data.image )
-      form.setValue("tag", data.tag ?? "")
-      form.setValue("providerId", data.provider?.id )
-      form.setValue("categoryId", data.category?.id )
+      form.setValue("image", data.image ?? ""); // Carga la URL existente
+      setPreviewImage(data.image ?? null); // Para mostrar la imagen existente
+      form.setValue("tag", data.tag ?? "");
+      form.setValue("providerId", data.provider?.id);
+      form.setValue("categoryId", data.category?.id);
     }
   }, [data, form, isEditing])
 
+  const handleImageUpload = async (file: File) => {
+    setSelectedFile(file);
+    // Crear una URL de objeto para previsualizar la imagen inmediatamente
+    setPreviewImage(URL.createObjectURL(file));
+
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Crear una URL temporal para mostrar la imagen seleccionada
+      setPreviewImage(URL.createObjectURL(file));
+    }
+  };
+
+  // Modifica tu useEffect para manejar la previsualización al editar
+  useEffect(() => {
+      if (data && isEditing) {
+        setInitialValues(data)
+        form.setValue("name", data.name)
+        // ... otros form.setValue
+        form.setValue("image", data.image ?? ""); // Carga la URL existente
+        setPreviewImage(data.image ?? null); // Para mostrar la imagen existente
+        // ...
+      }
+    }, [data, form, isEditing])
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    const quantityInMiliunits = convertAmountToMiliunits(parseFloat(values.quantity))
-    const priceUnitInMiliunits = convertAmountToMiliunits(parseFloat(values.priceUnit))
-    const priceInMiliunits = convertAmountToMiliunits(parseFloat(values.price))
+    console.log('sdfs')
+    const quantityInMiliunits = convertAmountToMiliunits(parseFloat(values.quantity));
+    const priceUnitInMiliunits = convertAmountToMiliunits(parseFloat(values.priceUnit));
+    const priceInMiliunits = convertAmountToMiliunits(parseFloat(values.price)); 
+    let imageUrl: string | null = values.image || null; 
 
-    
+    // Si hay un archivo nuevo seleccionado, súbelo primero
+    if (selectedFile) {
+      const formData = new FormData();
+      formData.append("image", selectedFile);
+
+      try {
+        // Envía el archivo a tu API de subida de imágenes
+        const uploadResponse = await fetch("/api/upload-image", { // Crea esta API Route
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error("Error al subir la imagen");
+        }
+
+        const uploadData = await uploadResponse.json();
+        imageUrl = uploadData.imageUrl; // Asume que tu API devuelve la URL de la imagen
+        form.setValue("image", imageUrl ?? ""); // Actualiza el valor del formulario con la URL
+      } catch (uploadError) {
+        console.error("Error al subir la imagen:", uploadError);
+        toast.error("Error al subir la imagen.", {
+          description: "No se pudo subir la imagen del artículo.",
+        });
+        return; // Detener el envío del formulario si falla la subida de la imagen
+      }
+    }
+
+    function generateTag(name: string): string {
+      return name
+        .toUpperCase() // convierte a mayúsculas
+        .trim() // elimina espacios al inicio y final
+        .replace(/\s+/g, "_") // reemplaza espacios por guiones bajos (puedes usar "-" si prefieres)
+        .replace(/[^\w_]/g, ""); // elimina caracteres no alfanuméricos ni guion bajo
+    }
+   
     try {    
+      if (isEditing && initialValues) {
+        await updateArticle.mutateAsync({
+          id: initialValues.id,
+          name: values.name.toUpperCase(),
+          serial: values.serial,
+          image: imageUrl || "",
+          tag: generateTag(values.name) || "",
+          description: values.description || "",
+
+          categoryId: values.categoryId,
+          providerId: values.providerId,
+          updated_by: session?.user.username || "",
+
+          quantity: quantityInMiliunits,
+          priceUnit: priceUnitInMiliunits,
+          price: priceInMiliunits,
+        });
+      } else {
         
-      await createArticle.mutateAsync({
-        name: values.name.toUpperCase(),
-        serial: values.serial,
-        image: values.image || "",
-        tag: values.tag || "",
-        description: values.description || "",
+        await createArticle.mutateAsync({
+          name: values.name.toUpperCase(),
+          serial: values.serial,
+          image: imageUrl || "",
+          tag: generateTag(values.name) || "",
+          description: values.description || "",
 
-        categoryId:  values.categoryId ,
-        providerId: values.providerId,
-        registered_by: session?.user.username || "",
+          categoryId: values.categoryId,
+          providerId: values.providerId,
+          registered_by: session?.user.username || "",
 
-        quantity: quantityInMiliunits,
-        priceUnit: priceUnitInMiliunits,
-        price: priceInMiliunits,
+          quantity: quantityInMiliunits,
+          priceUnit: priceUnitInMiliunits,
+          price: priceInMiliunits,
 
-      })
-      
+        });
+      }
+      console.log(values);
+      form.reset();
+      onClose();
     } catch (error) {
       console.error(error); // Log the error for debugging
       toast.error("Error al guardar el Articulo", {
@@ -149,15 +238,13 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
       });
     }
   };
-
+//ARREGLAR ERROR DEL SUBMIT (NO LO HACE)
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className='flex flex-col max-w-7xl mx-auto mt-4 space-y-6'>
-
-            {/* CLIENTE / PROVEEDOR */}
-            <div id="client-provider" className="flex flex-col lg:flex-row gap-8">
+        <div className='flex flex-col gap-4'>            
+          <div id="client-provider" className="flex flex-col md:flex-row gap-10">
             <FormField
               control={form.control}
               name="categoryId"
@@ -171,7 +258,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "w-[200px] justify-between",
+                            "w-[230px] justify-between",
                             !field.value && "text-muted-foreground"
                           )}
                         >
@@ -184,7 +271,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
                             )?.name} - {categories?.find(
                               (category) => category.id === field.value
                             )?.description}</p>
-                            : "Seleccione la categoria..."
+                            : "Seleccione categoria..."
                           }
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -315,58 +402,49 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
             />
             
           </div>
-         
-           {/* FORMULARIO DEL PASAJERO */}
-           <div className='flex flex-col'>
-            <h1 className='text-3xl font-bold italic flex items-center gap-2'>Info. del Pasajero <RotateCw onClick={() => onResetArticleForm()} className="size-4 cursor-pointer hover:animate-spin" /></h1>
-            <Separator className='w-56' />
-            <div id="passanger-info-container" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 place-content-center w-full mx-auto mt-4">
-              <div id="dni-number">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold">Nombre</FormLabel>
-                      <FormControl>
-                        <Input type="text" className="w-[200px] shadow-none border-b border-r-0 border-t-0 border-l-0" placeholder="Topo" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Nombre del articulo
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <FormField
-                control={form.control}
-                name="serial"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-bold">Serial</FormLabel>
-                    <FormControl>
-                      <Input className="w-[200px] shadow-none border-b-1 border-r-0 border-t-0 border-l-0" placeholder="AS1235" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Serial del articulo
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
+          <div className="flex flex-col md:flex-row gap-10">     
+
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="font-bold">Nombre</FormLabel>
+                  <FormControl>
+                    <Input type="text" className="w-[200px] shadow-none border-b border-r-0 border-t-0 border-l-0" placeholder="Topo" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Nombre del articulo
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            
+            <FormField
+              control={form.control}
+              name="serial"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="font-bold">Serial</FormLabel>
+                  <FormControl>
+                    <Input className="w-[200px] shadow-none border-b-1 border-r-0 border-t-0 border-l-0" placeholder="AS1235" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Serial del articulo
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
                    
-            </div>
+          
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">    
      
-          {/* FORMULARIO DE  TRANSACTION*/}
-
-          <div className="flex flex-col ">
-            <h1 className='text-3xl font-bold italic flex items-center gap-3'>Info. del Transaccion <RotateCw onClick={() => onResetArticleForm()} className="size-4 cursor-pointer hover:animate-spin" /></h1>
-            <Separator className='w-57' />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 place-content-center w-full mx-auto mt-4">
               <FormField
                 control={form.control}
                 name="quantity"
@@ -374,7 +452,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
                   <FormItem>
                     <FormLabel className="font-bold">Cantidad</FormLabel>
                     <FormControl>
-                      <AmountInput  {...field} placeholder="0.00" />
+                      <Input type="number"  {...field} placeholder="0.00" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -406,20 +484,63 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
                   </FormItem>
                 )}
               />
-
-              
-            </div>
+            
+    
             
           </div>
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col gap-2 max-w-lg w-full">
+            <FormField
+              control={form.control}
+              name="image"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="font-bold">Imagen del Artículo</FormLabel>
+                  <FormControl>
+                    {/* Usamos un input de tipo file, y gestionamos el valor manualmente */}
+                    <Input
+                      type="file"
+                      accept="image/*" // Solo acepta archivos de imagen
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          // Aquí podrías subir la imagen inmediatamente o en el submit
+                          // Por ahora, solo almacenamos el archivo en un estado local para previsualizar
+                          // y luego lo enviaremos al backend
+                          handleImageUpload(file); // Función para manejar la subida
+                        }
+                      }}
+                      // No asignamos field.value directamente aquí, ya que el input file
+                      // maneja su propio estado (el archivo en sí).
+                      // El 'value' de 'field' será la URL de la imagen después de subirla.
+                    />
+                  </FormControl>
+                  {/* Previsualización de la imagen */}
+                  {previewImage && (
+                    <div className="mt-2">
+                      <Image
+                        src={previewImage}
+                        alt="Previsualización de la imagen"
+                        width={150}
+                        height={150}
+                        className="rounded-md object-cover"
+                      />
+                    </div>
+                  )}
+                  <FormDescription>
+                    Sube una imagen para el artículo.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="space-y-2 w-full">
                   <FormLabel className="font-bold">Observaciones</FormLabel>
                   <FormControl>
-                    <Textarea className="w-[850px] shadow-none" placeholder="..." {...field} />
+                    <Textarea className="w-full min-w-[80px] shadow-none" placeholder="..." {...field} />
                   </FormControl>
 
                   <FormMessage />
@@ -429,7 +550,10 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
 
           </div>
           
-          <Button disabled={createArticle.isPending} type="submit">Crear ticket</Button>
+          <Button disabled={createArticle.isPending || updateArticle.isPending} type="submit">
+                      {isEditing ? "Actualizar Articulo" : "Registrar Articulo"}
+          </Button>
+          
         </div>
       </form>
     </Form >

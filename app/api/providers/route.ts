@@ -19,31 +19,30 @@ export async function GET() {
 
   export async function POST(request: Request) {
     try {
-    const data = await request.json();
-    // Check if the branch name already exists
-    const providerFound = await db.provider.findFirst({
-      where: {
-        provider_number: data.provider_number,
-      },
-    });
-
-    if (providerFound) {
-      return NextResponse.json(
-        {
-          message: "El número de proveedor para dicho vuelo ya existe.",
+      const data = await request.json();
+      console.log(data)
+      // Check if the branch name already exists
+      const providerFound = await db.provider.findFirst({
+        where: {
+          phone_number: data.phone_number,
         },
-        {
-          status: 400, // Set 400 status code for a validation error
-        }
-      );
-    }
+      });
+
+      if (providerFound) {
+        return NextResponse.json(
+          {
+            message: "El número de proveedor para dicho vuelo ya existe.",
+          },
+          {
+            status: 400, // Set 400 status code for a validation error
+          }
+        );
+      }
 
       // Create a new branch if the name is unique
       const newProvider = await db.provider.create({
         data: {
-          provider_number: data.provider_number,
-          name: data.name,
-          provider_type: data.provider_type,
+          ...data
         },
       });
 

@@ -56,12 +56,12 @@ export const columns: ColumnDef<Client>[] = [
       },
   },
   {
-    accessorKey: "dni",
+    accessorKey: "phone_number",
     header: ({column}) => (
-        <DataTableColumnHeader filter column={column} title='Identificacion'/>
+        <DataTableColumnHeader filter column={column} title='Numero de Tlf'/>
     ),
     cell: ({ row }) => {   
-        return <div className="text-center font-bold">{row.original.dni}</div>
+        return <div className="text-center font-bold">{row.original.phone_number}</div>
       },
   },
   {

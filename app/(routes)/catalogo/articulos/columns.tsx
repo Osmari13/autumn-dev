@@ -1,17 +1,18 @@
 "use client"
 
+import ArticleDropdownActions from "@/components/dropdowns/ArticleDropdownActions"
 import PendingTicketsDropdownActions from "@/components/dropdowns/PendingTicketsDropdownActions"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Ticket } from "@/types"
+import { Article } from "@/types"
 import { ColumnDef } from "@tanstack/react-table"
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
 
 
-export const columns: ColumnDef<Ticket>[] = [
+export const columns: ColumnDef<Article>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -39,67 +40,57 @@ export const columns: ColumnDef<Ticket>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "ticket_number",
+    accessorKey: "name",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title='Nro. de Ticket' />
+      <DataTableColumnHeader filter column={column} title='Nombre' />
     ),
     cell: ({ row }) => {
-      return <div className="text-center font-bold">{row.original.ticket_number}</div>
+      return <div className="text-center font-bold">{row.original.name}</div>
     },
   },
   {
-    accessorKey: "booking_ref",
+    accessorKey: "serial",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title='Localizador' />
+      <DataTableColumnHeader filter column={column} title='Serial' />
     ),
     cell: ({ row }) => {
-      return <div className="text-center italic text-muted-foreground">{row.original.booking_ref}</div>
+      return <div className="text-center italic text-muted-foreground">{row.original.serial}</div>
     },
   },
   {
-    accessorKey: "route",
+    accessorKey: "quantity",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Ruta' />
+      <DataTableColumnHeader column={column} title='Cantidad' />
     ),
     cell: ({ row }) => {
-      return <div className="text-center font-bold">{row.original.route.origin} - {row.original.route.destiny}</div>
+      return <div className="text-center font-bold">{row.original.quantity}</div>
     },
   },
   {
-    accessorKey: "flight_date",
+    accessorKey: "category",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Fecha de Vuelo' />
+      <DataTableColumnHeader column={column} title='Categoria' />
     ),
     cell: ({ row }) => {
-      return <div className="text-center text-muted-foreground italic font-medium">{row.original.flight_date}</div>
+      return <div className="text-center text-muted-foreground italic font-medium">{row.original.category.name}</div>
     },
   },
   {
-    accessorKey: "passanger",
+    accessorKey: "provider",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Pasajero(s)' />
+      <DataTableColumnHeader column={column} title='Proveedor' />
     ),
     cell: ({ row }) => {
-      return <p className="text-center font-bold">{row.original.passanger.first_name} {row.original.passanger.last_name}</p>
+      return <p className="text-center font-bold">{row.original.provider.name} </p>
     },
   },
-  {
-    accessorKey: "status",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Status' />
-    ),
-    cell: ({ row }) => {
-      return <div className="flex justify-center">
-        <Badge className="text-center font-bold bg-yellow-500">{row.original.status}</Badge>
-      </div>
-    },
-  },
+
   {
     id: "actions",
     cell: ({ row }) => {
       const id = row.original.id
       return (
-        <PendingTicketsDropdownActions id={id.toString()} />
+        <ArticleDropdownActions id={id.toString()} />
       )
     },
   }

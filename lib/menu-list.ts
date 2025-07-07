@@ -1,4 +1,7 @@
 import {
+  BookOpen,
+  FileUser,
+  Handshake,
   LayoutGrid,
   LucideIcon,
   Store,
@@ -47,14 +50,14 @@ export function getMenuList(pathname: string, role: string): Group[] {
           href: "/proveedores",
           label: "Proveedores",
           active: pathname.includes("/proveedores"),
-          icon: Store,
+          icon: Handshake,
           submenus: []
         },
         {
           href: "/clientes",
           label: "Clientes",
           active: pathname.includes("/clientes"),
-          icon: Store,
+          icon: FileUser,
           submenus: []
         },
        
@@ -62,33 +65,44 @@ export function getMenuList(pathname: string, role: string): Group[] {
           href: "/catalogo",
           label: "Catalogo",
           active: pathname.includes("/catalogo"),
-          icon: Store,
-          submenus: []
-        },
-        {
-          href: "/articulo",
-          label: "Articulo",
-          active: pathname.includes("/articulo"),
-          icon: Store,
+          icon: BookOpen,
           submenus: [
             {
-              href: "/articulo/registro_categoria",
-              label: "Registro de categoria",
-              active: pathname === "/articulo/registro_categoria"
+              href: "/catalogo/categorias",
+              label: "Categorias",
+              active: pathname === "/catalogo/categorias"
             },
             {
-              href: "/articulo/registro_articulo",
-              label: "Registro de Articulos",
-              active: pathname === "/articulo/registro_articulo"
+              href: "/catalogo/articulos",
+              label: "Articulos",
+              active: pathname === "/catalogo/articulos"
             },
-            {
-              href: "/articulo/transaccion",
-              label: "Transaccion del Articulo",
-              active: pathname === "/articulo/transaccion"
-            }
-          
           ]
-        }
+        },
+        // {
+        //   href: "/articulo",
+        //   label: "Articulo",
+        //   active: pathname.includes("/articulo"),
+        //   icon: Store,
+        //   submenus: [
+        //     {
+        //       href: "/articulo/registro_categoria",
+        //       label: "Registro de categoria",
+        //       active: pathname === "/articulo/registro_categoria"
+        //     },
+        //     {
+        //       href: "/articulo/registro_articulo",
+        //       label: "Registro de Articulos",
+        //       active: pathname === "/articulo/registro_articulo"
+        //     },
+        //     {
+        //       href: "/articulo/transaccion",
+        //       label: "Transaccion del Articulo",
+        //       active: pathname === "/articulo/transaccion"
+        //     }
+          
+        //   ]
+        // }
         
       ]
     },

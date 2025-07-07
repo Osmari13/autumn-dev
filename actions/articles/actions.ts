@@ -40,43 +40,34 @@ export const useCreateArticle = () => {
   const queryClient = useQueryClient();
   const createMutation = useMutation({
     mutationFn: async (values: {           // ID of the branch to be updated
-       name:string
+        name:string
         description :string | null
         serial :string 
         quantity: number
         priceUnit: number
         price :number
-        image: string
+        image: string | null
         tag:  string | null
         providerId :string
         categoryId :string 
         registered_by :string 
     }) => {
-      await axios.post(`/api/articles`, {
-        name: values.name,
-        description: values.description ?? null,
-        serial: values.serial,
-        quantity: values.quantity,
-        priceUnit: values.priceUnit,
-        price: values.price,
-        image: values.image,
-        tag: values.tag ?? null,
-        providerId: values.providerId,
-        categoryId: values.categoryId,
-        registered_by: values.registered_by,
-      });
+     const res= await axios.post(`/api/articles`, {
+        ...values
+     });
+      return res
     },
     onSuccess: () => {
       // Invalidate the 'articles' query to refresh the data
       queryClient.invalidateQueries({ queryKey: ["articles"] });
       toast.success("¡Creado!", {
-        description: "¡La sucursal ha sido creada correctamente!",
+        description: "¡El Articulo ha sido creada correctamente!",
         dismissible: true,
       })
     },
     onError: (error: Error) => {
       toast.error("Oops!", {
-        description: `¡Hubo un error al crear la sucursal!: ${error}`,
+        description: `¡Hubo un error al crear el articulo!: ${error}`,
       });
     },
   });
@@ -87,7 +78,7 @@ export const useCreateArticle = () => {
 };
 
 
-export const useDeleteBranch = () => {
+export const useDeleteArticle = () => {
 
   const queryClient = useQueryClient();
 
@@ -98,37 +89,44 @@ export const useDeleteBranch = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["articles"] });
       toast.success("¡Eliminado!", {
-        description: "¡La sucursal ha sido eliminada correctamente!"
+        description: "¡El Articulo ha sido eliminada correctamente!"
       });
     },
     onError: () => {
       toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar la sucursal!"
+        description: "¡Hubo un error al eliminar El Articulo!"
       });
     },
   });
 
   return {
-    deleteBranch: deleteMutation,
+    deleteArticle: deleteMutation,
   };
 };
 
 
 
-  export const useUpdateBranch = () => {
+  export const useUpdateArticle = () => {
 
     const queryClient = useQueryClient();
 
     const updateMutation = useMutation({
       mutationFn: async (values: {
         id: string;               // ID of the branch to be updated
-        location_name: string;    // New location name
-        fiscal_address: string | null; // New fiscal address
+        name: string;               // ID of the branch to be updated
+        description :string | null
+        serial :string 
+        quantity: number
+        priceUnit: number
+        price :number
+        image: string | null
+        tag:  string | null
+        providerId :string
+        categoryId :string 
+        updated_by :string | null
       }) => {
         await await axios.patch(`/api/articles/${values.id}`, {
-            id: values.id,
-            location_name: values.location_name,
-            fiscal_address: values.fiscal_address ?? null
+            ...values
 
         });
       },
@@ -147,6 +145,6 @@ export const useDeleteBranch = () => {
     });
 
     return {
-      updateBranch: updateMutation, // Function to call the mutation
+      updateArticle: updateMutation, // Function to call the mutation
     };
   };

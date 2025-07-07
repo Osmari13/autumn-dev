@@ -74,7 +74,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     });
 
     return NextResponse.json({
-      message: 'Sucursal eliminada exitosamente',
+      message: 'Cliente eliminada exitosamente',
       deletedClient,
     });
   } catch (error) {
@@ -113,10 +113,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
     return NextResponse.json(updatedClient);
   } catch (error) {
-    console.error("Error al actualizar la cliente:", error);
+    console.error("Error al actualizar el cliente:", error);
     return NextResponse.json(
       {
-        message: "Error al actualizar la cliente.",
+        message: "Error al actualizar el cliente.",
       },
       {
         status: 500,

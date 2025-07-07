@@ -10,18 +10,18 @@ import { ContentLayout } from '@/components/sidebar/ContentLayout'
 import React from 'react'
 
 const DashboardPage = () => {
-  const { data, loading } = useGetSummary();
+  // const { data, loading } = useGetSummary();
 
-  if (loading) {
-    return <div className='max-w-6xl mx-auto mt-12'>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 pb-2">
-        <DataCardLoading />
-        <DataCardLoading />
-        <DataCardLoading />
-      </div>
-      <BranchPieLoading />
-    </div>
-  }
+  // if (loading) {
+  //   return <div className='max-w-6xl mx-auto mt-12'>
+  //     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 pb-2">
+  //       <DataCardLoading />
+  //       <DataCardLoading />
+  //       <DataCardLoading />
+  //     </div>
+  //     <BranchPieLoading />
+  //   </div>
+  // }
   return (
     <ContentLayout title='Dashboard'>
       <ProtectedRoute roles={['ADMIN']}>

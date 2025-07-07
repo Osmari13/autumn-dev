@@ -1,26 +1,26 @@
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useState } from "react"
-import PassangerForm from "../forms/CategoryForm"
 import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
-import { useDeleteArticle } from "@/actions/articles/actions"
-import ArticleForm from "../forms/ArticleForm"
+import CategoryForm from "../forms/CategoryForm"
+import { useDeleteProvider } from "@/actions/providers/actions"
+import RegisterProviderForm from "../forms/RegisterProviderForm"
 
-const ArticleDropdownActions = ({ id }: { id: string }) => {
+const ProviderDropdownActions = ({ id }: { id: string }) => {
   const [isDropdownMenuOpen, setIsDropdownMenuOpen] = useState<boolean>(false);
   const [isDialogOpen1, setIsDialogOpen1] = useState<boolean>(false); // Delete dialog
   const [isDialogOpen2, setIsDialogOpen2] = useState<boolean>(false); // Edit dialog
 
-  const { deleteArticle } = useDeleteArticle();
+  const { deleteProvider } = useDeleteProvider();
 
   const handleDelete = async (id: string) => {
-    await deleteArticle.mutateAsync(id);
+    await deleteProvider.mutateAsync(id);
     setIsDialogOpen1(false);
   };
 
@@ -56,9 +56,9 @@ const ArticleDropdownActions = ({ id }: { id: string }) => {
       <Dialog open={isDialogOpen1} onOpenChange={setIsDialogOpen1}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-center">¿Seguro que desea eliminar el pasajero?</DialogTitle>
+            <DialogTitle className="text-center">¿Seguro que desea eliminar al proveedor?</DialogTitle>
             <DialogDescription className="text-center p-2 mb-0 pb-0">
-              Esta acción es irreversible y estaría eliminando por completo el pasajero seleccionado.
+              Esta acción es irreversible y estaría eliminando por completo al proveedor seleccionado.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex flex-col gap-2 md:gap-0">
@@ -66,11 +66,11 @@ const ArticleDropdownActions = ({ id }: { id: string }) => {
               Cancelar
             </Button>
             <Button
-              disabled={deleteArticle.isPending} // Disable button while mutation is pending
+              disabled={deleteProvider.isPending} // Disable button while mutation is pending
               className="hover:bg-white hover:text-black hover:border hover:border-black transition-all"
               onClick={() => handleDelete(id)}
             >
-              {deleteArticle.isPending ? <Loader2 className="animate-spin" /> : "Confirmar"} {/* Show loader */}
+              {deleteProvider.isPending ? <Loader2 className="animate-spin" /> : "Confirmar"} {/* Show loader */}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -80,16 +80,16 @@ const ArticleDropdownActions = ({ id }: { id: string }) => {
       <Dialog open={isDialogOpen2} onOpenChange={setIsDialogOpen2}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Editar Pasajero</DialogTitle>
+            <DialogTitle>Editar Proveedor</DialogTitle>
             <DialogDescription>
-              Actualice los detalles del pasajero
+              Actualiza los detalles de la Proveedor
             </DialogDescription>
           </DialogHeader>
-          <ArticleForm isEditing id={id} onClose={() => setIsDialogOpen2(false)} />
+          <RegisterProviderForm isEditing id={id} onClose={() => setIsDialogOpen2(false)} />
         </DialogContent>
       </Dialog>
     </>
   );
 };
 
-export default ArticleDropdownActions;
+export default ProviderDropdownActions;

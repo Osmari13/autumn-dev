@@ -39,8 +39,7 @@ const CategoryForm = ({ id, onClose, isEditing = false }: FormProps) => {
       description: initialValues?.description ?? ""
     },
   });
-  const [openClient, setOpenClient] = useState(false)
-  const { data: clients, loading: clientsLoading, error: clientsError } = useGetClients();
+
   const { data: category } = useGetCategory(id ?? null);
   const { createCategory } = useCreateCategory()
   const { updateCategory } = useUpdateCategory()

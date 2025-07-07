@@ -1,6 +1,6 @@
 "use client"
 
-import ProviderDropdownActions from "@/components/dropdowns/CategoryDropdownActions"
+import ProviderDropdownActions from "@/components/dropdowns/ProviderDropdownActions"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Provider } from "@/types"
@@ -38,12 +38,12 @@ export const columns: ColumnDef<Provider>[] = [
         enableHiding: false,
       },
   {
-    accessorKey: "provider_number",
+    accessorKey: "phone_number",
     header: ({column}) => (
-        <DataTableColumnHeader filter column={column} title='Codigo del proveedor ' />
+        <DataTableColumnHeader filter column={column} title='Numero de Tlf' />
     ),
     cell: ({ row }) => {
-        return <div className="text-center font-bold">{row.original.provider_number}</div>
+        return <div className="text-center font-bold">{row.original.phone_number}</div>
       },
   },
   {
@@ -54,16 +54,7 @@ export const columns: ColumnDef<Provider>[] = [
     cell: ({ row }) => {
         return <div className="text-center font-bold">{row.original.name}</div>
       },
-  },
-  {
-    accessorKey: "provider_type",
-    header: ({column}) => (
-        <DataTableColumnHeader filter column={column} title='Tipo del proveedor'/>
-    ),
-    cell: ({ row }) => {   
-        return <div className="text-center font-bold">{row.original.provider_type}</div>
-      },
-  },
+  },  
   {
     id: "actions",
     cell: ({ row }) => {

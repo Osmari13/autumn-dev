@@ -93,7 +93,7 @@ model Article{
   quantity     Int
   priceUnit    Float
   price        Float
-  image        String
+  image        String?
   tag          String?
   provider     Provider @relation(fields: [providerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   providerId   String @unique

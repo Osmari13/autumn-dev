@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/table"
 import { ListRestart } from "lucide-react"
 import { useState } from "react"
+import { RegisterArticleDialog } from "@/components/dialogs/RegisterArticleDialog"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -62,6 +63,8 @@ export function DataTable<TData, TValue>({
     <div>
       <div className="flex items-center py-4">
         <div className="flex gap-x-2 items-center">
+            <RegisterArticleDialog />
+          
           {isFiltered && (
             <Button
               variant="ghost"

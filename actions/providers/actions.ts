@@ -37,17 +37,15 @@ export const useGetProviders = () => {
   export const useCreateProvider = () => {
     const queryClient = useQueryClient();
     const createMutation = useMutation({
-      mutationFn: async (values: {           // ID of the branch to be updated
+      mutationFn: async (values: {// ID of the branch to be updated
         name: string,
         first_name: string | null,
         last_name: string | null,
         phone_number: string | null,
+        registered_by: string | null,
       }) => {
         await axios.post(`/api/providers`, {
-          name: values.name,
-          first_name:values.first_name,
-          last_name: values.last_name,
-          phone_number: values.phone_number,
+          ...values,
         });
       },
       onSuccess: () => {
@@ -80,12 +78,10 @@ export const useGetProviders = () => {
         first_name: string | null,
         last_name: string | null,
         phone_number: string | null,
+        updated_by: string | null,
       }) => {
         await axios.patch(`/api/providers/${values.id}`, {
-          name: values.name,
-          first_name:values.first_name,
-          last_name: values.last_name,
-          phone_number: values.phone_number,
+         ...values,
         });
       },
       onSuccess: () => {
