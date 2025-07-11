@@ -4,7 +4,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
-import { Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { HandCoins, Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useState } from "react"
 import PassangerForm from "../forms/CategoryForm"
 import { Button } from "../ui/button"
@@ -16,6 +16,7 @@ const ArticleDropdownActions = ({ id }: { id: string }) => {
   const [isDropdownMenuOpen, setIsDropdownMenuOpen] = useState<boolean>(false);
   const [isDialogOpen1, setIsDialogOpen1] = useState<boolean>(false); // Delete dialog
   const [isDialogOpen2, setIsDialogOpen2] = useState<boolean>(false); // Edit dialog
+  const [isDialogOpen3, setIsDialogOpen3] = useState<boolean>(false); // Transaction dialog
 
   const { deleteArticle } = useDeleteArticle();
 
@@ -35,13 +36,15 @@ const ArticleDropdownActions = ({ id }: { id: string }) => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center" className="flex gap-2 justify-center">
-          {/* Delete Option */}
+          {/* Realizar la funcion de transaccion */}
+          {/* Transaction Option */}
           <DropdownMenuItem onClick={() => {
-            setIsDialogOpen1(true);
+            setIsDialogOpen3(true);
             setIsDropdownMenuOpen(false);
           }}>
-            <Trash2 className='size-5 text-red-500' />
+            <HandCoins className="size-6 text-green-600 cursor-pointer" />
           </DropdownMenuItem>
+
           {/* Edit Option */}
           <DropdownMenuItem onClick={() => {
             setIsDialogOpen2(true);
@@ -49,9 +52,43 @@ const ArticleDropdownActions = ({ id }: { id: string }) => {
           }}>
             <Pencil className="size-4 cursor-pointer" />
           </DropdownMenuItem>
+
+          {/* Delete Option */}
+          <DropdownMenuItem onClick={() => {
+            setIsDialogOpen1(true);
+            setIsDropdownMenuOpen(false);
+          }}>
+            <Trash2 className='size-5 text-red-500' />
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      
+      {/* Transaction Article Dialog */}
+      <Dialog open={isDialogOpen3} onOpenChange={setIsDialogOpen3}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Añadir Transaccion del Articulo</DialogTitle>
+            <DialogDescription>
+              Registre los Detalles de la Transaccion del Articulo
+            </DialogDescription>
+          </DialogHeader>
+          {/* <ArticleForm isEditing id={id} onClose={() => setIsDialogOpen2(false)} /> */}
+        </DialogContent>
+      </Dialog>
 
+      
+      {/* Edit Article Dialog */}
+      <Dialog open={isDialogOpen2} onOpenChange={setIsDialogOpen2}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Pasajero</DialogTitle>
+            <DialogDescription>
+              Actualice los detalles del pasajero
+            </DialogDescription>
+          </DialogHeader>
+          <ArticleForm isEditing id={id} onClose={() => setIsDialogOpen2(false)} />
+        </DialogContent>
+      </Dialog>
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDialogOpen1} onOpenChange={setIsDialogOpen1}>
         <DialogContent>
@@ -76,18 +113,7 @@ const ArticleDropdownActions = ({ id }: { id: string }) => {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Branch Dialog */}
-      <Dialog open={isDialogOpen2} onOpenChange={setIsDialogOpen2}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Editar Pasajero</DialogTitle>
-            <DialogDescription>
-              Actualice los detalles del pasajero
-            </DialogDescription>
-          </DialogHeader>
-          <ArticleForm isEditing id={id} onClose={() => setIsDialogOpen2(false)} />
-        </DialogContent>
-      </Dialog>
+      
     </>
   );
 };

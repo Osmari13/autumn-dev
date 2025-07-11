@@ -8,15 +8,15 @@ import { columns } from './columns'
 import { useGetArticles } from '@/actions/articles/actions'
 
 
-const ArticlePage = () => {
-    const {data: articles, loading, error} = useGetArticles()
+const TransactionPage = () => {
+    // const {data: articles, loading, error} = useGetArticles()
     return (
-      <ContentLayout title='Articulos'>
+      <ContentLayout title='Transaccion'>
           <div className="text-center mt-6">
-              <h1 className='text-5xl font-bold'>Articulos</h1>
-              <p className="text-muted-foreground italic text-sm">Aquí puede llevar el control de los Articulos que han sido registrados en el sistema.</p>
+              <h1 className='text-5xl font-bold'>Transaccion</h1>
+              <p className="text-muted-foreground italic text-sm">Aquí puede llevar el control de las Transacciones que han sido registrado de los articulos en el sistema.</p>
           </div>
-          {
+          {/* {
             loading && <div className='w-full flex justify-center'>
               <Loader2 className='size-12 animate-spin'/>
             </div>
@@ -26,9 +26,9 @@ const ArticlePage = () => {
           }
           {
             error && <div className='w-full flex justify-center text-sm text-muted-foreground'>Hubo un error...</div>
-          }
+          } */}
       </ContentLayout>
     )
 }
 
-export default ArticlePage
+export default TransactionPage
