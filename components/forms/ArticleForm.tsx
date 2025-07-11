@@ -31,16 +31,17 @@ import { z } from 'zod';
 import { CreateClientDialog } from "../dialogs/CreateClientDialog";
 import { RegisterProviderDialog } from "../dialogs/RegisterProviderDialog";
 import { Button } from '../ui/button';
-import { Checkbox } from "../ui/checkbox";
+
 import { Input } from '../ui/input';
 
 
 import { AmountInput } from "../misc/AmountInput";
-import { Separator } from "../ui/separator";
+
 import { Textarea } from "../ui/textarea";
 import { Article } from "@/types";
 import { useCreateArticle, useGetArticle, useUpdateArticle } from "@/actions/articles/actions";
 import { useGetCategories } from "@/actions/categories/actions";
+import { RegisterCategoryDialog } from "../dialogs/RegisterCategoryDialog";
 
 const formSchema = z.object({
   name: z.string(),
@@ -53,7 +54,6 @@ const formSchema = z.object({
   tag: z.string().optional(),
   categoryId: z.string(),
   providerId: z.string(),
-  registered_by: z.string()
 
 });
 
@@ -69,12 +69,12 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-        name: initialValues?.name,
+      name: initialValues?.name,
       description: initialValues?.description ?? "",
       image: initialValues?.image ?? ""
     },
   });
-
+ 
   const { data: session } = useSession()
   const [openProvider, setOpenProvider] = useState(false)
   const [openCategory, setOpenCategory] = useState(false)
@@ -88,14 +88,10 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const { watch, setValue } = form
-  const quantity = watch('quantity')
-  const price = watch('price')
-  const priceUnit = watch('priceUnit')
-
-  const onResetArticleForm = () => {
-    form.reset()
-  }
+  const { watch, setValue } = form;
+  const quantity = watch('quantity');
+  const price = watch('price');
+  const priceUnit = watch('priceUnit');
  
   /** Precio articulo */
   useEffect(() => {
@@ -105,51 +101,34 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
   }, [price, priceUnit, setValue]);
 
   useEffect(() => {
-    if (data && isEditing) {
+    if (data) {
       setInitialValues(data)
-      form.setValue("name", data.name)
-      form.setValue("description", data.description ?? "")
-      form.setValue("serial", data.serial )
-      form.setValue("quantity", data.quantity.toString());
-      form.setValue("priceUnit", data.priceUnit.toString());
-      form.setValue("price", data.price.toString());
-      form.setValue("image", data.image ?? ""); // Carga la URL existente
-      setPreviewImage(data.image ?? null); // Para mostrar la imagen existente
-      form.setValue("tag", data.tag ?? "");
-      form.setValue("providerId", data.provider?.id);
-      form.setValue("categoryId", data.category?.id);
+      form.reset({
+        name: data.name,
+        description: data.description ?? "",
+        serial: data.serial,
+        quantity: data.quantity.toString(),
+        priceUnit: data.priceUnit.toString(),
+        price: data.price.toString(),
+        image: data.image ?? "",
+        tag: data.tag ?? "",
+        providerId: data.provider?.id ?? "",
+        categoryId: data.category?.id ?? "",
+      });
+      setPreviewImage(data.image ?? null);
     }
-  }, [data, form, isEditing])
+  }, [data, form]);
 
   const handleImageUpload = async (file: File) => {
+   
     setSelectedFile(file);
     // Crear una URL de objeto para previsualizar la imagen inmediatamente
     setPreviewImage(URL.createObjectURL(file));
 
   };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Crear una URL temporal para mostrar la imagen seleccionada
-      setPreviewImage(URL.createObjectURL(file));
-    }
-  };
-
-  // Modifica tu useEffect para manejar la previsualización al editar
-  useEffect(() => {
-      if (data && isEditing) {
-        setInitialValues(data)
-        form.setValue("name", data.name)
-        // ... otros form.setValue
-        form.setValue("image", data.image ?? ""); // Carga la URL existente
-        setPreviewImage(data.image ?? null); // Para mostrar la imagen existente
-        // ...
-      }
-    }, [data, form, isEditing])
-
+ 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log('sdfs')
+    console.log('estoy')
     const quantityInMiliunits = convertAmountToMiliunits(parseFloat(values.quantity));
     const priceUnitInMiliunits = convertAmountToMiliunits(parseFloat(values.priceUnit));
     const priceInMiliunits = convertAmountToMiliunits(parseFloat(values.price)); 
@@ -209,8 +188,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
           priceUnit: priceUnitInMiliunits,
           price: priceInMiliunits,
         });
-      } else {
-        
+      } else {        
         await createArticle.mutateAsync({
           name: values.name.toUpperCase(),
           serial: values.serial,
@@ -220,7 +198,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
 
           categoryId: values.categoryId,
           providerId: values.providerId,
-          registered_by: session?.user.username || "",
+          registered_by: session!.user.username,
 
           quantity: quantityInMiliunits,
           priceUnit: priceUnitInMiliunits,
@@ -228,7 +206,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
 
         });
       }
-      console.log(values);
+    
       form.reset();
       onClose();
     } catch (error) {
@@ -238,11 +216,15 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
       });
     }
   };
-//ARREGLAR ERROR DEL SUBMIT (NO LO HACE)
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form onSubmit={form.handleSubmit(
+        onSubmit,
+        (errors) => {
+          console.log("Errores de validación:", errors);
+        }
+      )}>
         <div className='flex flex-col gap-4'>            
           <div id="client-provider" className="flex flex-col md:flex-row gap-10">
             <FormField
@@ -250,7 +232,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
               name="categoryId"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel className="font-bold">Cliente</FormLabel>
+                  <FormLabel className="font-bold">Categoria</FormLabel>
                   <Popover open={openCategory} onOpenChange={setOpenCategory}>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -268,9 +250,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
                           {field.value
                             ? <p>{categories?.find(
                               (category) => category.id === field.value
-                            )?.name} - {categories?.find(
-                              (category) => category.id === field.value
-                            )?.description}</p>
+                            )?.name}</p>
                             : "Seleccione categoria..."
                           }
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -280,10 +260,10 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
                     </PopoverTrigger>
                     <PopoverContent className="w-[200px] p-0">
                       <Command>
-                        <CommandInput placeholder="Busque un cliente..." />
-                        <CreateClientDialog />
+                        <CommandInput placeholder="Busque una categoria..." />
+                        <RegisterCategoryDialog />
                         <CommandList>
-                          <CommandEmpty>No se ha encontrado un cliente.</CommandEmpty>
+                          <CommandEmpty>No se ha encontrado una categoria.</CommandEmpty>
                           <CommandGroup>
                             {categories?.map((category) => (
                               <CommandItem
@@ -483,10 +463,8 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
                     <FormMessage />
                   </FormItem>
                 )}
-              />
-            
-    
-            
+              />          
+
           </div>
           <div className="flex flex-col gap-2 max-w-lg w-full">
             <FormField
@@ -509,9 +487,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
                           handleImageUpload(file); // Función para manejar la subida
                         }
                       }}
-                      // No asignamos field.value directamente aquí, ya que el input file
-                      // maneja su propio estado (el archivo en sí).
-                      // El 'value' de 'field' será la URL de la imagen después de subirla.
+                  
                     />
                   </FormControl>
                   {/* Previsualización de la imagen */}
@@ -548,10 +524,10 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
               )}
             />
 
-          </div>
-          
-          <Button disabled={createArticle.isPending || updateArticle.isPending} type="submit">
-                      {isEditing ? "Actualizar Articulo" : "Registrar Articulo"}
+          </div>         
+        
+          <Button disabled={createArticle.isPending ||updateArticle.isPending} type="submit" className="w-full">
+                {createArticle.isPending ||updateArticle.isPending ? <Loader2 className='size-4 animate-spin' /> : <p>{isEditing ? "Actualizar" : "Registrar"}</p>}
           </Button>
           
         </div>

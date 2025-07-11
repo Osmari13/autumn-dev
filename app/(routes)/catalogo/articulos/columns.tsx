@@ -1,10 +1,9 @@
 "use client"
 
 import ArticleDropdownActions from "@/components/dropdowns/ArticleDropdownActions"
-import PendingTicketsDropdownActions from "@/components/dropdowns/PendingTicketsDropdownActions"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
-import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { convertAmountFromMiliunits } from "@/lib/utils"
 import { Article } from "@/types"
 import { ColumnDef } from "@tanstack/react-table"
 
@@ -63,7 +62,7 @@ export const columns: ColumnDef<Article>[] = [
       <DataTableColumnHeader column={column} title='Cantidad' />
     ),
     cell: ({ row }) => {
-      return <div className="text-center font-bold">{row.original.quantity}</div>
+      return <div className="text-center font-bold">{convertAmountFromMiliunits(row.original.quantity)}</div>
     },
   },
   {

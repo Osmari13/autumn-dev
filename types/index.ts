@@ -39,16 +39,16 @@ export type Category = {
 
 
   export type Article = {
-    id :string ,
+    id :string,
     name:string,
     description :string | null,
-    serial :string ,
+    serial :string,
     quantity: number,
     priceUnit: number,
     price :number,
     image: string | null,
     registered_by: string,
-    updated_by?:    string | null,
+    updated_by?: string | null,
     tag:  string | null,
     provider :Provider,
     category :Category ,

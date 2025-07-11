@@ -49,19 +49,19 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     const data = await db.article.findMany({
-      select: {
+      include: {
         category: {
           select: {
-            name: true            
-          }
+            name: true,
+          },
         },
         provider: {
           select: {
-            name:true            
-          }
-        }
-      }
-    })
+            name: true,
+          },
+        },
+      },
+    });
     return NextResponse.json(data, {
       status: 200,
     });
