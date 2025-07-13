@@ -11,6 +11,7 @@ import { Button } from "../ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { useDeleteArticle } from "@/actions/articles/actions"
 import ArticleForm from "../forms/ArticleForm"
+import TransactionForm from "../forms/TransactionForm"
 
 const ArticleDropdownActions = ({ id }: { id: string }) => {
   const [isDropdownMenuOpen, setIsDropdownMenuOpen] = useState<boolean>(false);
@@ -72,7 +73,7 @@ const ArticleDropdownActions = ({ id }: { id: string }) => {
               Registre los Detalles de la Transaccion del Articulo
             </DialogDescription>
           </DialogHeader>
-          {/* <ArticleForm isEditing id={id} onClose={() => setIsDialogOpen2(false)} /> */}
+          <TransactionForm id={id} onClose={() => setIsDialogOpen2(false)} />
         </DialogContent>
       </Dialog>
 

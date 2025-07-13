@@ -1,8 +1,5 @@
 'use client';
 
-import { useGetProviders } from "@/actions/providers/actions";
-
-import { Calendar } from "@/components/ui/calendar";
 import {
   Command,
   CommandEmpty,
@@ -17,14 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { cn, convertAmountToMiliunits } from "@/lib/utils";
+import { cn, convertAmountFromMiliunits, convertAmountToMiliunits } from "@/lib/utils";
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from "@tanstack/react-query";
@@ -43,16 +33,20 @@ import { CreateClientDialog } from "../dialogs/CreateClientDialog";
 import { RegisterProviderDialog } from "../dialogs/RegisterProviderDialog";
 
 import { Button } from '../ui/button';
-import { Checkbox } from "../ui/checkbox";
-import { Input } from '../ui/input';
-
-
 import { AmountInput } from "../misc/AmountInput";
-import { Separator } from "../ui/separator";
-import { Textarea } from "../ui/textarea";
-import { Article } from "@/types";
-import { useCreateArticle, useGetArticle } from "@/actions/articles/actions";
-import { useGetCategories } from "@/actions/categories/actions";
+import { Article, Transaction } from "@/types";
+import {useGetArticle } from "@/actions/articles/actions";
+import { useGetClients } from "@/actions/clients/actions";
+import { useCreateTransaction, useGetTransaction } from "@/actions/transactions/actions";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar } from "../ui/calendar";
+import { Input } from '../ui/input';
 
 const formSchema = z.object({
   name: z.string(),
@@ -62,11 +56,10 @@ const formSchema = z.object({
   payMethods: z.string(),
   status: z.string(),
   clientId: z.string(),
-  providerId: z.string(),
   articleId: z.string(),
   transaction_date: z.date(),
   registered_by: z.string(),
-
+  priceArticle: z.string(),
 });
 
 interface FormProps {
@@ -77,7 +70,7 @@ interface FormProps {
 
 
 const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
-  const [initialValues, setInitialValues] = useState<Article | null>(null);
+  const [initialValues, setInitialValues] = useState<Transaction | null>(null);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -87,19 +80,20 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
 
   const { data: session } = useSession()
   const queryClient = useQueryClient()
-  const [openProvider, setOpenProvider] = useState(false)
-  const [openCategory, setOpenCategory] = useState(false)
+  const [openClient, setOpenClient] = useState(false)
+  const [openTransactionDate, setOpenTransactionDate] = useState(false)
+  
 
-  const { data: providers, loading: providersLoading, error: providersError } = useGetProviders()
-  const { data: categories, loading: categoriesLoading, error: categoriesError } = useGetCategories()
-  const { data } = useGetArticle(id ?? null);
-  const { createArticle } = useCreateArticle();
+  const { data: clients, loading: clientsLoading, error: clientsError } = useGetClients()
+  const { data: articles } = useGetArticle(id ?? null);
+  // const { data } = useGetTransaction(id ?? null);
+  const { createTransaction } = useCreateTransaction();
 
-
-  const { watch, setValue } = form
-  const quantity = watch('quantity')
-  const price = watch('price')
-  const priceUnit = watch('price')
+  const { setError, clearErrors, watch, getValues, setValue } = form;
+  const quantity = watch('quantity');
+  const priceArticle = articles?.priceUnit.toString() ?? "0";
+  const nameArticle = articles?.name ?? "";
+  const total = watch('total');
 
   const onResetTransactionForm = () => {
     form.reset()
@@ -107,55 +101,81 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
  
   /** Transaccion */
   useEffect(() => {
-    const price = (parseFloat(quantity || "0") * parseFloat(priceUnit || "0")).toFixed(2);
-    setValue('price', price);
+    // const price = parseFloat(priceArticle)
+    // const qty = parseFloat(quantity || "0") || 0;
+    const total = (parseFloat(quantity || "0") * parseFloat(priceArticle || "0")).toFixed(2);
 
-  }, [price, priceUnit, setValue]);
+    setValue('subtotal', convertAmountFromMiliunits(parseFloat(priceArticle)).toString());
+    setValue('total', convertAmountFromMiliunits(parseFloat(total)).toString());
+  }, [quantity, priceArticle, setValue]);
 
+  // Mostrar error quantity mientras escribe
   useEffect(() => {
-    if (data && isEditing) {
-      setInitialValues(data)
-      form.setValue("name", data.name)
-      form.setValue("description", data.description ?? "")
-      form.setValue("serial", data.serial )
-      form.setValue("quantity", data.quantity.toString());
-      form.setValue("priceUnit", data.priceUnit.toString());
-      form.setValue("price", data.price.toString());
-      form.setValue("image", data.image )
-      form.setValue("tag", data.tag ?? "")
-      form.setValue("providerId", data.provider?.id )
-      form.setValue("categoryId", data.category?.id )
+    if (!articles) return;
+
+    const articleQuantity = convertAmountFromMiliunits(articles.quantity ?? 0); // número
+    const numericQuantity = Number(quantity); // número
+
+    if (numericQuantity > articleQuantity) {
+      console.log(articleQuantity, numericQuantity);
+      setError("quantity", {
+        type: "manual",
+        message: `Supera la cantidad de artículos en stock (${articleQuantity})`,
+      });
+    } else {
+      clearErrors("quantity");
     }
-  }, [data, form, isEditing])
+  }, [quantity, articles]);
+
+
+
+  // useEffect(() => {
+  //   if (data && isEditing) {
+  //     setInitialValues(data)
+  //     form.setValue("name", data.name)
+  //     form.setValue("description", data.description ?? "")
+  //     form.setValue("serial", data.serial )
+  //     form.setValue("quantity", data.quantity.toString());
+  //     form.setValue("priceUnit", data.priceUnit.toString());
+  //     form.setValue("price", data.price.toString());
+  //     form.setValue("image", data.image )
+  //     form.setValue("tag", data.tag ?? "")
+  //     form.setValue("providerId", data.provider?.id )
+  //     form.setValue("categoryId", data.category?.id )
+  //   }
+  // }, [data, form, isEditing])
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    const quantityInMiliunits = convertAmountToMiliunits(parseFloat(values.quantity))
-    const priceUnitInMiliunits = convertAmountToMiliunits(parseFloat(values.priceUnit))
-    const priceInMiliunits = convertAmountToMiliunits(parseFloat(values.price))
+    const quantityInMiliunits = convertAmountToMiliunits(parseFloat(values.quantity));
+    const subtotalInMiliunits = convertAmountToMiliunits(parseFloat(values.subtotal));
+    const totalInMiliunits = convertAmountToMiliunits(parseFloat(values.total));
 
     
-    try {    
+    try {  
+      if (articles && values.quantity > articles?.quantity.toString()) {
+        setError("quantity", {
+          type: "manual",
+          message: `Supera la cantidad de artículos en stock (${quantityInMiliunits})`,
+        });
+        return;
+      }
         
-      await createArticle.mutateAsync({
+      await createTransaction.mutateAsync({
         name: values.name.toUpperCase(),
-        serial: values.serial,
-        image: values.image || "",
-        tag: values.tag || "",
-        description: values.description || "",
-
-        categoryId:  values.categoryId ,
-        providerId: values.providerId,
-        registered_by: session?.user.username || "",
-
         quantity: quantityInMiliunits,
-        priceUnit: priceUnitInMiliunits,
-        price: priceInMiliunits,
-
+        subtotal:subtotalInMiliunits,
+        total: totalInMiliunits,
+        payMethods: values.payMethods,
+        transaction_date: values.transaction_date,
+        status:values.status,
+        clientId:  values.clientId ,
+        articleId: articles?.id ?? "",
+        registered_by: session?.user.username || "",
       })
       
     } catch (error) {
       console.error(error); // Log the error for debugging
-      toast.error("Error al guardar el Articulo", {
+      toast.error("Error al guardar la transaccion", {
         description: "Ocurrió un error, por favor intenta nuevamente.",
       });
     }
@@ -167,93 +187,16 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className='flex flex-col max-w-7xl mx-auto mt-4 space-y-6'>
 
-            {/* CLIENTE / PROVEEDOR */}
+            <h1>{nameArticle}</h1>
             <div id="client-provider" className="flex flex-col lg:flex-row gap-8">
+            
             <FormField
               control={form.control}
-              name="categoryId"
+              name="clientId"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel className="font-bold">Cliente</FormLabel>
-                  <Popover open={openCategory} onOpenChange={setOpenCategory}>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            "w-[200px] justify-between",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {
-                            categoriesLoading && <Loader2 className="size-4 animate-spin mr-2" />
-                          }
-                          {field.value
-                            ? <p>{categories?.find(
-                              (category) => category.id === field.value
-                            )?.name} - {categories?.find(
-                              (category) => category.id === field.value
-                            )?.description}</p>
-                            : "Seleccione la categoria..."
-                          }
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
-
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0">
-                      <Command>
-                        <CommandInput placeholder="Busque un cliente..." />
-                        <CreateClientDialog />
-                        <CommandList>
-                          <CommandEmpty>No se ha encontrado un cliente.</CommandEmpty>
-                          <CommandGroup>
-                            {categories?.map((category) => (
-                              <CommandItem
-                                value={`${category.name}`}
-                                key={category.id}
-                                onSelect={() => {
-                                  form.setValue("categoryId", category.id)
-                                  setOpenCategory(false)
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    category.id === field.value
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                {
-                                  <p>{category.name}</p>
-                                }
-                              </CommandItem>
-                            ))}
-                            {
-                              categoriesError && <p className="text-sm text-muted-foreground">Ha ocurrido un error al cargar los datos...</p>
-                            }
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormDescription>
-                    Seleccione la categoria
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="providerId"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel className="font-bold">Proveedor</FormLabel>
-                  <Popover open={openProvider} onOpenChange={setOpenProvider}>
+                  <Popover open={openClient} onOpenChange={setOpenClient}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
@@ -266,13 +209,15 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
                           )}
                         >
                           {
-                            providersLoading && <Loader2 className="size-4 animate-spin mr-2" />
+                            clientsLoading && <Loader2 className="size-4 animate-spin mr-2" />
                           }
                           {field.value
-                            ? <p>{providers?.find(
-                              (provider) => provider.id === field.value
-                            )?.name} </p>
-                            : "Elige un proveedor..."
+                            ? <p>{clients?.find(
+                              (client) => client.id === field.value
+                            )?.first_name} {clients?.find(
+                              (client) => client.id === field.value
+                            )?.last_name} </p>
+                            : "Elige un cliente..."
                           }
 
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -282,35 +227,35 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
                     </PopoverTrigger>
                     <PopoverContent className="w-[200px] p-0">
                       <Command>
-                        <CommandInput placeholder="Busque su proveedor..." />
-                        <RegisterProviderDialog />
+                        <CommandInput placeholder="Busque su cliente..." />
+                        <CreateClientDialog />
                         <CommandList>
-                          <CommandEmpty>No se ha encontrado un proveedor.</CommandEmpty>
+                          <CommandEmpty>No se ha encontrado un cliente.</CommandEmpty>
                           <CommandGroup>
-                            {providers?.map((provider) => (
+                            {clients?.map((client) => (
                               <CommandItem
-                                value={`${provider.name}`}
-                                key={provider.id}
+                                value={`${client.first_name}`}
+                                key={client.id}
                                 onSelect={() => {
-                                  form.setValue("providerId", provider.id)
-                                  setOpenProvider(false)
+                                  form.setValue("clientId", client.id)
+                                  setOpenClient(false)
                                 }}
                               >
                                 <Check
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    provider.id === field.value
+                                    client.id === field.value
                                       ? "opacity-100"
                                       : "opacity-0"
                                   )}
                                 />
                                 {
-                                  <p>{provider.name}</p>
+                                  <p>{client.first_name}</p>
                                 }
                               </CommandItem>
                             ))}
                             {
-                              providersError && <p className="text-muted-foreground text-sm">Ha ocurrido un error al cargar los datos...</p>
+                              clientsError && <p className="text-muted-foreground text-sm">Ha ocurrido un error al cargar los datos...</p>
                             }
                           </CommandGroup>
                         </CommandList>
@@ -318,7 +263,7 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
                     </PopoverContent>
                   </Popover>
                   <FormDescription>
-                    Seleccione al proveedor
+                    Seleccione al cliente
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -327,57 +272,60 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
             
           </div>
          
-           {/* FORMULARIO DEL PASAJERO */}
-           <div className='flex flex-col'>
-            <h1 className='text-3xl font-bold italic flex items-center gap-2'>Info. del Pasajero <RotateCw onClick={() => onResetTransactionForm()} className="size-4 cursor-pointer hover:animate-spin" /></h1>
-            <Separator className='w-56' />
-            <div id="passanger-info-container" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 place-content-center w-full mx-auto mt-4">
-              <div id="dni-number">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold">Nombre</FormLabel>
-                      <FormControl>
-                        <Input type="text" className="w-[200px] shadow-none border-b border-r-0 border-t-0 border-l-0" placeholder="Topo" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Nombre del articulo
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <FormField
-                control={form.control}
-                name="serial"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-bold">Serial</FormLabel>
-                    <FormControl>
-                      <Input className="w-[200px] shadow-none border-b-1 border-r-0 border-t-0 border-l-0" placeholder="AS1235" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Serial del articulo
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-                   
-            </div>
-          </div>
-
-     
+           
           {/* FORMULARIO DE  TRANSACTION*/}
 
           <div className="flex flex-col ">
-            <h1 className='text-3xl font-bold italic flex items-center gap-3'>Info. del Transaccion <RotateCw onClick={() => onResetTransactionForm()} className="size-4 cursor-pointer hover:animate-spin" /></h1>
-            <Separator className='w-57' />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 place-content-center w-full mx-auto mt-4">
+            <RotateCw onClick={() => onResetTransactionForm()} className="size-4 cursor-pointer hover:animate-spin" />
+             <FormField
+              control={form.control}
+              name="transaction_date"
+              render={({ field }) => (
+                <FormItem className="flex flex-col mt-2">
+                  <FormLabel className="font-bold">Fecha de transaccion</FormLabel>
+                  <Popover open={openTransactionDate} onOpenChange={setOpenTransactionDate}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-auto pl-3 text-left font-normal shadow-none border-b-1 border-r-0 border-t-0 border-l-0 bg-transparent",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP", {
+                              locale: es
+                            })
+                          ) : (
+                            <span>Seleccione una fecha</span>
+                          )}
+                          <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={(e) => {
+                          field.onChange(e)
+                          setOpenTransactionDate(false)
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormDescription>
+                    Fecha de compra del boleto
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+     
+          
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 place-content-center w-full mx-auto mt-4">
               <FormField
                 control={form.control}
                 name="quantity"
@@ -385,7 +333,7 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
                   <FormItem>
                     <FormLabel className="font-bold">Cantidad</FormLabel>
                     <FormControl>
-                      <AmountInput  {...field} placeholder="0.00" />
+                      <Input type="number"  {...field} placeholder="0.00" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -393,12 +341,12 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
               />
               <FormField
                 control={form.control}
-                name="priceUnit"
+                name="subtotal"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-bold">Precio Unitario</FormLabel>
+                    <FormLabel className="font-bold">Subtotal (precio)</FormLabel>
                     <FormControl>
-                      <AmountInput {...field} placeholder="0.00" />
+                      <AmountInput {...field} placeholder="0.00" disabled/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -406,10 +354,10 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
               />
               <FormField
                 control={form.control}
-                name="price"
+                name="total"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-bold">Precio total</FormLabel>
+                    <FormLabel className="font-bold">Total</FormLabel>
                     <FormControl>
                       <AmountInput {...field} placeholder="0.00" />
                     </FormControl>
@@ -424,23 +372,33 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
           </div>
           <div className="flex flex-col items-center">
             <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="font-bold">Observaciones</FormLabel>
-                  <FormControl>
-                    <Textarea className="w-[850px] shadow-none" placeholder="..." {...field} />
-                  </FormControl>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                control={form.control}
+                name="payMethods"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-bold">Metodo de Pago</FormLabel>
+                    <Select onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className={cn("w-[200px] shadow-none border-b-1 border-r-0 border-t-0 border-l-0", field.value ? "font-bold" : "")}>
+                          <SelectValue placeholder="Seleccione el metodo de pago" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="PAGO_MOVIL">PAGO MOVIL</SelectItem>
+                        <SelectItem value="EFECTIVO">EFECTIVO</SelectItem>
+                        <SelectItem value="TRANSFERENCIA">TRANSFERENCIA</SelectItem>
+                        
+                      </SelectContent>
+                    </Select>
+                    
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
           </div>
           
-          <Button disabled={createArticle.isPending} type="submit">Crear ticket</Button>
+          <Button disabled={createTransaction.isPending} type="submit">Crear ticket</Button>
         </div>
       </form>
     </Form >

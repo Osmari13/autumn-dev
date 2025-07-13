@@ -6,11 +6,7 @@ export async function POST(request: Request) {
       const data = await request.json();
       const newTransaction = await db.transaction.create({
         data: {
-          payment_ref:data.payment_ref,
-          payment_method: data.payment_method,
-          ticketId: data.ticketId,
-          registered_by: data.registered_by,
-          transaction_date: data.transaction_date
+          ...data
         },
       });
 
@@ -20,6 +16,40 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         message: "Error en el servidor.",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
+
+export async function GET() {
+  try {
+    const data = await db.transaction.findMany({
+      include: {
+        article: {
+          select: {
+            name: true,
+            serial: true
+          },
+        },
+        client: {
+          select: {
+            first_name: true,
+            last_name: true
+          },
+        },
+      },
+    });
+    return NextResponse.json(data, {
+      status: 200,
+    });
+  } catch (error) {
+    console.error("Error fetching transaction:", error);
+    return NextResponse.json(
+      {
+        message: "Error al obtener las transacciones.",
       },
       {
         status: 500,

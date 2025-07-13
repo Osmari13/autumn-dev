@@ -128,7 +128,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
   };
  
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log('estoy')
+  
     const quantityInMiliunits = convertAmountToMiliunits(parseFloat(values.quantity));
     const priceUnitInMiliunits = convertAmountToMiliunits(parseFloat(values.priceUnit));
     const priceInMiliunits = convertAmountToMiliunits(parseFloat(values.price)); 
