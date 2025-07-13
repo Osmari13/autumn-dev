@@ -68,7 +68,6 @@ interface FormProps {
   id?: string,
 }
 
-
 const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
   const [initialValues, setInitialValues] = useState<Transaction | null>(null);
   const form = useForm<z.infer<typeof formSchema>>({
@@ -82,7 +81,6 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
   const queryClient = useQueryClient()
   const [openClient, setOpenClient] = useState(false)
   const [openTransactionDate, setOpenTransactionDate] = useState(false)
-  
 
   const { data: clients, loading: clientsLoading, error: clientsError } = useGetClients()
   const { data: articles } = useGetArticle(id ?? null);
@@ -101,8 +99,6 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
  
   /** Transaccion */
   useEffect(() => {
-    // const price = parseFloat(priceArticle)
-    // const qty = parseFloat(quantity || "0") || 0;
     const total = (parseFloat(quantity || "0") * parseFloat(priceArticle || "0")).toFixed(2);
 
     setValue('subtotal', convertAmountFromMiliunits(parseFloat(priceArticle)).toString());
@@ -126,8 +122,6 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
       clearErrors("quantity");
     }
   }, [quantity, articles]);
-
-
 
   // useEffect(() => {
   //   if (data && isEditing) {
@@ -180,7 +174,6 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
       });
     }
   };
-
 
   return (
     <Form {...form}>
@@ -272,7 +265,6 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
             
           </div>
          
-           
           {/* FORMULARIO DE  TRANSACTION*/}
 
           <div className="flex flex-col ">
