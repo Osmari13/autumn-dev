@@ -4,7 +4,7 @@ import axios from "axios";
 import { toast } from "sonner";
 
 export const useGetClients = () => {
-  const branchesQuery = useQuery({
+  const clientsQuery = useQuery({
     queryKey: ["clients"],
     queryFn: async () => {
       const { data} = await axios.get('/api/clients'); // Adjust the endpoint as needed
@@ -12,9 +12,9 @@ export const useGetClients = () => {
     }
   });
   return {
-    data: branchesQuery.data,
-    loading: branchesQuery.isLoading,
-    error: branchesQuery.isError // Function to call the query
+    data: clientsQuery.data,
+    loading: clientsQuery.isLoading,
+    error: clientsQuery.isError // Function to call the query
   };
 };
 

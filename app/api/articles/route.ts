@@ -9,7 +9,7 @@ export async function POST(request: Request) {
         console.log(data)
         const articleFound = await db.article.findFirst({
           where: {
-            id: data.id,
+            serial: data.serial,
           },
         });
 

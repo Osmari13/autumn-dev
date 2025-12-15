@@ -19,7 +19,7 @@ const Register = () => {
           <RegisterForm />
         </div>
       </div>
-    // </ProtectedRoute>
+   </ProtectedRoute>
   )
 }
 

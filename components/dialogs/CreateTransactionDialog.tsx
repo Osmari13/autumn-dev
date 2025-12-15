@@ -13,18 +13,18 @@ import {
 import { useState } from "react"
 import TransactionForm from "../forms/TransactionForm"
 
-export function CreateClientDialog() {
+export function CreateTransactionDialog() {
   const [open, setOpen] = useState(false)
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="font-bold">Crear Cliente</Button>
+        <Button variant="outline" className="font-bold">Registrar Transaccion</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Creacion de Cliente</DialogTitle>
+          <DialogTitle>Crear Transaccion</DialogTitle>
           <DialogDescription>
-            Rellene el formulario para la creación de un cliente.
+            Rellene el formulario para la creación de una transaccion.
           </DialogDescription>
         </DialogHeader>
         <TransactionForm  onClose={() => setOpen(false)} />

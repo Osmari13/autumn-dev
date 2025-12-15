@@ -21,7 +21,6 @@ import { cn, convertAmountToMiliunits } from "@/lib/utils";
 import Image from "next/image";
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from "@tanstack/react-query";
-import 'driver.js/dist/driver.css';
 import { CalendarIcon, Check, ChevronsUpDown, Loader2, RotateCw } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -225,8 +224,8 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
           console.log("Errores de validación:", errors);
         }
       )}>
-        <div className='flex flex-col gap-4'>            
-          <div id="client-provider" className="flex flex-col md:flex-row gap-10">
+        <div className='flex flex-col gap-6'>            
+          <div id="client-provider" className="flex flex-col md:flex-row gap-6">
             <FormField
               control={form.control}
               name="categoryId"
@@ -383,7 +382,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
             
           </div>
 
-          <div className="flex flex-col md:flex-row gap-10">     
+          <div className="flex flex-col md:flex-row gap-6">     
 
             <FormField
               control={form.control}
@@ -466,7 +465,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
               />          
 
           </div>
-          <div className="flex flex-col gap-2 max-w-lg w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
               name="image"
@@ -481,9 +480,6 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          // Aquí podrías subir la imagen inmediatamente o en el submit
-                          // Por ahora, solo almacenamos el archivo en un estado local para previsualizar
-                          // y luego lo enviaremos al backend
                           handleImageUpload(file); // Función para manejar la subida
                         }
                       }}
@@ -525,7 +521,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
             />
 
           </div>         
-        
+          
           <Button disabled={createArticle.isPending ||updateArticle.isPending} type="submit" className="w-full">
                 {createArticle.isPending ||updateArticle.isPending ? <Loader2 className='size-4 animate-spin' /> : <p>{isEditing ? "Actualizar" : "Registrar"}</p>}
           </Button>
