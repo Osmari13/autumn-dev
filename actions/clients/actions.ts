@@ -91,10 +91,11 @@ export const useCreateClient = () => {
     const updateMutation = useMutation({
       mutationFn: async (values: {
         id: string;
-        first_name: string;    // New location name
-        last_name: string;    // New location name
-        phone_number: string | null ;
-        updated_by: string;
+        first_name?: string;    // New location name
+        last_name?: string;    // New location name
+        phone_number?: string | null ;
+        debt?: number;
+        updated_by?: string;
       }) => {
         await await axios.patch(`/api/clients/${values.id}`, {
             ...values

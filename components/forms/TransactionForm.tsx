@@ -34,7 +34,7 @@ import { Button } from '../ui/button';
 import { AmountInput } from "../misc/AmountInput";
 import { Article, Transaction, TransactionItem, TransactionItemForm } from "@/types";
 import {useGetArticle, useGetArticles } from "@/actions/articles/actions";
-import { useGetClients } from "@/actions/clients/actions";
+import { useGetClients, useUpdateClient } from "@/actions/clients/actions";
 import { useCreateTransaction, useGetTransaction } from "@/actions/transactions/actions";
 import {
   Select,
@@ -56,6 +56,7 @@ const formSchema = z.object({
   clientId: z.string(),
   transaction_date: z.date(),
   registered_by: z.string(),
+  
   // NUEVO: array de artículos
   items: z.array(z.object({
     articleId: z.string(),
@@ -102,6 +103,8 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
   const { data: clients, loading: clientsLoading, error: clientsError } = useGetClients();
   const { data } = useGetTransaction(id ?? null);
   const { data: articles, loading: articlesLoading, error: articlesError } = useGetArticles();
+
+  const { updateClient } = useUpdateClient();
   
 
   const { createTransaction } = useCreateTransaction();
@@ -206,13 +209,21 @@ const updateTotals = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-     
+      const status = values.reference === "" ? "PENDIENTE" : "PAGADO";
+      console.log(values)
+      if (values.reference === "") {
+        await updateClient.mutateAsync({
+          id: values.clientId,
+          debt: parseFloat(values.total),
+          updated_by: session?.user.username || ""
+        });
+      }
       await createTransaction.mutateAsync({
         reference: values.reference?.toUpperCase() || "",
         subtotal: parseFloat(values.subtotal),
-        total: parseFloat(values.total),
+        total: parseFloat(values.total), // convertAmountFromMiliunits(parseFloat(values.total)).toString());
         payMethods: values.payMethods,
-        status: values.status,
+        status: status,
         clientId: values.clientId,
         registered_by: session?.user.username || "",
         transaction_date: values.transaction_date,
@@ -284,7 +295,7 @@ const updateTotals = () => {
                                     client.id === field.value ? "opacity-100" : "opacity-0",
                                   )}
                                 />
-                                {<p>{client.first_name}</p>}
+                                {<p>{client.first_name} {client.last_name}</p>}
                               </CommandItem>
                             ))}
                             {clientsError && (

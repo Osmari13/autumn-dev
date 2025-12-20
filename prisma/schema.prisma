@@ -50,6 +50,7 @@ model Client {
 
   phone_number String?
   // client_deb  ClientDebs?
+  debt Float @default(0)
   transaction Transaction[]
   registered_by String?
   updated_by String?

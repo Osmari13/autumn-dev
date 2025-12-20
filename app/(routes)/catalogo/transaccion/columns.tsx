@@ -39,12 +39,12 @@ export const columns: ColumnDef<Transaction>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "name",
+    accessorKey: "reference",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="Nombre" />
+      <DataTableColumnHeader filter column={column} title="reference" />
     ),
     cell: ({ row }) => (
-      <div className="text-center font-bold">{row.original.name}</div>
+      <div className="text-center font-bold">{row.original.reference ?? 'POR CARGAR'}</div>
     ),
   },
   {
@@ -88,7 +88,7 @@ export const columns: ColumnDef<Transaction>[] = [
       )
       return (
         <div className="text-center font-bold">
-          {convertAmountFromMiliunits(totalQty)}
+          {totalQty}
         </div>
       )
     },
@@ -100,7 +100,7 @@ export const columns: ColumnDef<Transaction>[] = [
     ),
     cell: ({ row }) => (
       <div className="text-center text-muted-foreground italic font-medium">
-        {convertAmountFromMiliunits(row.original.total)}
+        ${row.original.total}
       </div>
     ),
   },
@@ -111,9 +111,18 @@ export const columns: ColumnDef<Transaction>[] = [
     ),
     cell: ({ row }) => {
       const client = row.original.client
+      const debt = client.debt || 0
+      const isDebtFree = debt === 0
+      
       return (
-        <div className="text-center text-muted-foreground italic font-medium">
-          {client.first_name} {client.last_name}
+        <div className="text-center font-medium">
+          <div className="italic">{client.first_name} {client.last_name}</div>
+          <div className={`font-bold ${isDebtFree 
+            ? 'text-green-600 dark:text-green-400' 
+            : 'text-red-600 dark:text-red-400'
+          }`}>
+            Deuda: ${debt.toLocaleString()}
+          </div>
         </div>
       )
     },

@@ -68,7 +68,7 @@ export default function Home() {
               otoño.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button>Ver colección</Button>
+              <Button onClick={() => window.location.href = "#productos"}>Ver colección</Button>
               <Button variant="outline" className="border-primary text-primary hover:bg-primary/10">
                 Conocer más
               </Button>
@@ -144,7 +144,7 @@ export default function Home() {
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10"></div>
                   <Image
-                    src={product.image || "/placeholder.svg"}
+                    src={product.image || "/loguito_blanco-removebg.png"}
                     alt={product.name}
                     fill
                     className="object-cover transition-transform group-hover:scale-105"
@@ -154,7 +154,7 @@ export default function Home() {
                   <div className="flex justify-between items-center">
                     <div>
                       <h3 className="font-medium text-foreground">{product.name}</h3>
-                      <p className="text-muted-foreground">{product.price}</p>
+                      <p className="text-muted-foreground">${product.price}</p>
                     </div>
                     <Button size="sm" className="bg-chart-5 hover:bg-chart-5/90 text-white">
                       <ShoppingBag className="h-4 w-4 mr-2" />

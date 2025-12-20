@@ -12,6 +12,7 @@ export type Client = {
   id: string,
   first_name: string,
   last_name: string,
+  debt: number,
   phone_number: string | null, 
   registered_by: string | null, 
 }
