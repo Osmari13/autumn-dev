@@ -61,7 +61,26 @@ export const columns: ColumnDef<Client>[] = [
         <DataTableColumnHeader filter column={column} title='Numero de Tlf'/>
     ),
     cell: ({ row }) => {   
-        return <div className="text-center font-bold">{row.original.phone_number}</div>
+        return <div className="text-center font-bold">{row.original.phone_number ?? 'No disponible'}</div>
+      },
+  },
+    {
+    accessorKey: "debt",
+    header: ({column}) => (
+        <DataTableColumnHeader filter column={column} title='Deuda'/>
+    ),
+    cell: ({ row }) => {   
+        return (
+          <div className="text-center font-medium">
+            <div className={`font-bold ${row.original.debt === 0 
+                ? 'text-green-600 dark:text-green-400' 
+                : 'text-red-600 dark:text-red-400'
+              }`}>
+                ${row.original.debt}
+              </div>
+
+          </div>
+          )
       },
   },
   {

@@ -28,14 +28,13 @@ export async function POST(request: Request) {
   try {
     const transaction = await db.$transaction(async (tx) => {
       const data = await request.json();
-      console.log(data)
+  
       // 1. Crear la transacción principal
       const newTransaction = await tx.transaction.create({
         data: {
           reference: data.reference || null,
           subtotal: data.subtotal,
           total: data.total,
-          payMethods: data.payMethods,
           status: data.status,
           clientId: data.clientId,
           registered_by: data.registered_by,
@@ -78,8 +77,10 @@ export async function GET() {
           select: {
             first_name: true,
             last_name: true,
+            debt: true,
           },
         },
+        payments: true,
         items: {                         // relación TransactionItem[]
           include: {
             article: {                   // relación Article dentro de cada ítem
@@ -87,6 +88,7 @@ export async function GET() {
                 name: true,
                 serial: true,
                 priceUnit: true,
+                price: true,
                 quantity: true,
               },
             },

@@ -32,7 +32,7 @@ import { RegisterProviderDialog } from "../dialogs/RegisterProviderDialog";
 
 import { Button } from '../ui/button';
 import { AmountInput } from "../misc/AmountInput";
-import { Article, Transaction, TransactionItem, TransactionItemForm } from "@/types";
+import { Article, Payment, Transaction, TransactionItem, TransactionItemForm } from "@/types";
 import {useGetArticle, useGetArticles } from "@/actions/articles/actions";
 import { useGetClients, useUpdateClient } from "@/actions/clients/actions";
 import { useCreateTransaction, useGetTransaction } from "@/actions/transactions/actions";
@@ -46,12 +46,13 @@ import {
 import { Calendar } from "../ui/calendar";
 import { Input } from '../ui/input';
 import { RegisterArticleDialog } from "../dialogs/RegisterArticleDialog";
+import { hasExternalOtelApiPackage } from "next/dist/build/webpack-config";
+import { useCreatePayment } from "@/actions/payment/actions";
 
 const formSchema = z.object({
-  reference: z.string().optional(),
+  reference: z.string(),
   subtotal: z.string(),
   total: z.string(),
-  payMethods: z.string(),
   status: z.string(),
   clientId: z.string(),
   transaction_date: z.date(),
@@ -63,10 +64,16 @@ const formSchema = z.object({
     quantity: z.string().min(1, "Cantidad requerida"),
     priceUnit: z.string(),
     subtotal: z.string(),
-  })).min(1, "Debe agregar al menos un artículo")
+  })).min(1, "Debe agregar al menos un artículo"),
+  
+  //Payment details (optional)
+  payMethod: z.string().optional(),
+  amount: z.string().optional(),
+  reference_number: z.string().optional(),
+  paidAt: z.date().optional(),
+  
+
 })
-
-
 
 interface FormProps {
   onClose: () => void;
@@ -77,6 +84,7 @@ interface FormProps {
 const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
   const [initialValues, setInitialValues] = useState<Transaction | null>(null);
   const [items, setItems] = useState<TransactionItemForm[]>([]);
+  const [paid, setPaid] = useState<Payment | null>(null);
   const [selectedArticleId, setSelectedArticleId] = useState<string | null>(null);
   const [quantityInput, setQuantityInput] = useState<number>(1);
   
@@ -86,12 +94,12 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
       reference: "",
       subtotal: "0",
       total: "0",
-      payMethods: "PAGO_MOVIL",
       status: "PENDIENTE",
       clientId: "",
       transaction_date: new Date(),
       registered_by: "",
-      items: []
+      items: [],
+      amount: "0.0",
     }
   });
 
@@ -99,6 +107,7 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
   const [openClient, setOpenClient] = useState(false)
   const [openArticle, setOpenArticle] = useState(false)
   const [openTransactionDate, setOpenTransactionDate] = useState(false)
+  const [openPaidAt, setOpenPaidAt] = useState(false)
 
   const { data: clients, loading: clientsLoading, error: clientsError } = useGetClients();
   const { data } = useGetTransaction(id ?? null);
@@ -106,11 +115,10 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
 
   const { updateClient } = useUpdateClient();
   
+  //FALTA APLICAR EL PAGO POR DOS PARTES
 
   const { createTransaction } = useCreateTransaction();
-  // const articleId = form.watch('articleId');
-  // const { data: articleData } = useGetArticle(articleId ?? null);
-  const { setError, clearErrors, watch, getValues, setValue } = form;
+  const { createPayment } = useCreatePayment();
 
   const onResetTransactionForm = () => {
     form.reset()
@@ -167,65 +175,23 @@ const updateTotals = () => {
   form.setValue('total', subtotal.toFixed(2)); // + impuestos si aplica
 };
 
-  // /** Transaccion */
-  // useEffect(() => {
-  //   const total = (parseFloat(quantity || "0") * parseFloat(priceArticle || "0")).toFixed(2);
-
-  //   setValue('subtotal', convertAmountFromMiliunits(parseFloat(priceArticle)).toString());
-  //   setValue('total', convertAmountFromMiliunits(parseFloat(total)).toString());
-  // }, [quantity, priceArticle, setValue]);
-
-  // // Mostrar error quantity mientras escribe
-  // useEffect(() => {
-  //   if (!articleData) return;
-
-  //   const articleQuantity = convertAmountFromMiliunits(articleData.quantity ?? 0); // número
-  //   const numericQuantity = Number(quantity); // número
-
-  //   if (numericQuantity > articleQuantity) {
-  //     console.log(articleQuantity, numericQuantity);
-  //     setError("quantity", {
-  //       type: "manual",
-  //       message: `Supera la cantidad de artículos en stock (${articleQuantity})`,
-  //     });
-  //   } else {
-  //     clearErrors("quantity");
-  //   }
-  // }, [quantity, articleData]);
-
-  // useEffect(() => {
-  //   if (data) {
-  //     setInitialValues(data)
-  //     form.reset({
-  //       name: data.name,
-  //       quantity: data.quantity.toString(),
-  //       total: data.total.toString(),
-  //       clientId: data.client?.id ?? "",
-  //       articleId: data.article?.id ?? "",
-  //     });
-     
-  //   }
-  // }, [data, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const status = values.reference === "" ? "PENDIENTE" : "PAGADO";
-      console.log(values)
-      if (values.reference === "") {
-        await updateClient.mutateAsync({
-          id: values.clientId,
-          debt: parseFloat(values.total),
-          updated_by: session?.user.username || ""
-        });
-      }
-      await createTransaction.mutateAsync({
+      const registered_by = session?.user.username || "";
+
+      const total = parseFloat(values.total);
+      const amount = parseFloat(values.amount || "0");
+
+      const status = amount >= total ? "PAGADO" : "PENDIENTE";
+
+      const res = await createTransaction.mutateAsync({
         reference: values.reference?.toUpperCase() || "",
         subtotal: parseFloat(values.subtotal),
-        total: parseFloat(values.total), // convertAmountFromMiliunits(parseFloat(values.total)).toString());
-        payMethods: values.payMethods,
-        status: status,
+        total,
+        status,
         clientId: values.clientId,
-        registered_by: session?.user.username || "",
+        registered_by,
         transaction_date: values.transaction_date,
         items: items.map(item => ({
           articleId: item.articleId,
@@ -234,6 +200,30 @@ const updateTotals = () => {
           subtotal: item.subtotal
         }))
       });
+     
+      if ( 
+        res &&
+        values.reference_number &&
+        amount > 0
+      ) {
+       
+        await createPayment.mutateAsync({
+          transactionId: res.id,
+          reference_number: values.reference_number,
+          amount,
+          payMethod: values.payMethod || "PAGO_MOVIL",
+          registered_by,
+          paidAt: values.paidAt || new Date()
+        });
+      }
+      if (res){
+        await updateClient.mutateAsync({
+          id: values.clientId,
+          debt: parseFloat(values.total) - parseFloat(values.amount || "0.0"),
+          updated_by: registered_by
+        });
+      }
+    
       onClose();
     } catch (error) {
       toast.error("Error al guardar la transacción");
@@ -416,7 +406,7 @@ const updateTotals = () => {
 
             <div className="bg-card border rounded-lg p-6 shadow-sm flex flex-col">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Detalles de Transacción</h2>
+                <h2 className="text-lg font-semibold">Detalles de Venta</h2>
                 <RotateCw
                   onClick={() => onResetTransactionForm()}
                   className="size-5 cursor-pointer hover:rotate-180 transition-transform duration-300"
@@ -428,12 +418,12 @@ const updateTotals = () => {
                 name="reference"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-bold">Referencia</FormLabel>
+                    <FormLabel className="font-bold">Descripcion</FormLabel>
                     <FormControl>
-                      <Input className="w-[200px] shadow-none border-b-1 border-r-0 border-t-0 border-l-0" placeholder="AS1235" {...field} />
+                      <Input className="w-[200px] shadow-none border-b-1 border-r-0 border-t-0 border-l-0" placeholder="Pago completo de ..." {...field} />
                     </FormControl>
                     <FormDescription>
-                      Referecion de la transacción (Ejemplo: AS1235)
+                      Referecion de la transacción
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -446,7 +436,7 @@ const updateTotals = () => {
                   name="transaction_date"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel className="font-bold">Fecha de Transacción</FormLabel>
+                      <FormLabel className="font-bold my-2">Fecha de Venta</FormLabel>
                       <Popover open={openTransactionDate} onOpenChange={setOpenTransactionDate}>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -478,7 +468,7 @@ const updateTotals = () => {
                           />
                         </PopoverContent>
                       </Popover>
-                      <FormDescription>Fecha de compra del boleto</FormDescription>
+                      <FormDescription>Fecha que se vendio el producto</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -512,10 +502,98 @@ const updateTotals = () => {
                     )}
                   />
                 </div>
+                <h2 className="text-lg font-semibold">Detalles de Pago</h2>
+                <FormField
+                control={form.control}
+                name="reference_number"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-bold">Referencia</FormLabel>
+                    <FormControl>
+                      <Input className="w-[200px] shadow-none border-b-1 border-r-0 border-t-0 border-l-0" placeholder="5678" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Numero de referencia para registrar pago del cliente
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                  control={form.control}
+                  name="paidAt"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="font-bold my-2">Fecha de Pago</FormLabel>
+                      <Popover open={openPaidAt} onOpenChange={setOpenPaidAt}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !field.value && "text-muted-foreground",
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {field.value ? (
+                                format(field.value, "PPP", { locale: es })
+                              ) : (
+                                <span>Seleccione una fecha</span>
+                              )}
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={(e) => {
+                              field.onChange(e)
+                              setOpenPaidAt(false)
+                            }}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormDescription>Fecha que pago el producto</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-bold">Monto Pagado</FormLabel>
+                    <FormControl>
+                      <AmountInput
+                        placeholder="0.00"
+                        value={field.value ?? ""}                         // siempre string
+                        onChange={(val) => {
+                          
+                          if (val == null) {
+                            field.onChange("")                           // vacío si borran todo
+                          } else if (field.value === "" || field.value === "0.00") {
+                            field.onChange(val)
+                          } else {
+                            field.onChange(val)
+                          }
+                        }}
+                        disabled={field.disabled}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
 
                 <FormField
                   control={form.control}
-                  name="payMethods"
+                  name="payMethod"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="font-bold">Método de Pago</FormLabel>

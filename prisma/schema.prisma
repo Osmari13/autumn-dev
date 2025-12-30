@@ -27,7 +27,7 @@ enum PayMethods {
 enum TransctionStatus {
   PENDIENTE
   PAGADO
-  CANCELADO
+  PARCIAL
 }
 
 model User {
@@ -49,7 +49,6 @@ model Client {
   last_name  String
 
   phone_number String?
-  // client_deb  ClientDebs?
   debt Float @default(0)
   transaction Transaction[]
   registered_by String?
@@ -58,6 +57,8 @@ model Client {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
+
+
 
 model Provider {
   id         String @id @default(cuid())
@@ -87,22 +88,22 @@ model Category {
 
 model Transaction {
   id        String @id @default(cuid())
-  reference      String? 
+  reference String?
+
   subtotal  Float
   total     Float
 
-  payMethods PayMethods        @default(PAGO_MOVIL)
-  status     TransctionStatus  @default(PENDIENTE)
+  status    TransctionStatus @default(PENDIENTE)
 
-  client   Client @relation(fields: [clientId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  clientId String
+  client    Client @relation(fields: [clientId], references: [id])
+  clientId  String
 
-  items    TransactionItem[]   // varios artículos en una transacción
+  items     TransactionItem[]
+  payments  Payment[]        // 🔥 CLAVE
 
-  transaction_date DateTime @updatedAt
-  registered_by    String
-  updated_by       String?
-
+  transaction_date DateTime @default(now())
+  registered_by String
+  updated_by    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -121,6 +122,25 @@ model TransactionItem {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Payment {// PAGO EN DOS PARTES (ABONO) 
+  id            String @id @default(cuid())
+
+  reference_number     String?
+  amount        Float
+  payMethod     PayMethods
+  paidAt        DateTime @default(now())
+  image         String? 
+
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  transactionId String
+
+  registered_by String
+  updated_by    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
 }
 
 model Article {
@@ -149,19 +169,6 @@ model Article {
   updatedAt DateTime @updatedAt
 }
 
-// model ClientDebs {
-//   id         String @id @default(cuid())
-  
-//   client     Client @relation(fields: [clientId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-//   clientId   String @unique
-
-//   transaction Transaction?
-//   registered_by String?
-//   updated_by String?
-
-//   createdAt  DateTime @default(now())
-//   updatedAt  DateTime @updatedAt
-// }
 
 
 

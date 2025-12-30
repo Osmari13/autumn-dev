@@ -39,53 +39,67 @@ export type Category = {
 }
 
 
-    export type Article = {
-    id: string
-    name: string
-    description: string | null
-    serial: string
-    quantity: number
-    priceUnit: number
-    price: number
-    image: string | null
-    registered_by: string
-    updated_by?: string | null
-    tag: string | null
-    provider: Provider
-    category: Category
-    // relación N‑N via tabla pivote
-    transactionItems?: TransactionItem[]
-  }
+export type Article = {
+  id: string
+  name: string
+  description: string | null
+  serial: string
+  quantity: number
+  priceUnit: number
+  price: number
+  image: string | null
+  registered_by: string
+  updated_by?: string | null
+  tag: string | null
+  provider: Provider
+  category: Category
+  // relación N‑N via tabla pivote
+  transactionItems?: TransactionItem[]
+}
 
-  export type TransactionItemForm = {
-    articleId: string
-    quantity: number
-    priceUnit: number
-    subtotal: number
-  }
+export type TransactionItemForm = {
+  articleId: string
+  quantity: number
+  priceUnit: number
+  subtotal: number
+}
 
-  export type TransactionItem = {
-    id: string
-    quantity: number
-    priceUnit: number
-    subtotal: number
-    articleId: string
-    article: Article
-    transactionId: string
-    // para evitar ciclos fuertes, puedes usar Transaction | null o no incluirla
-    transaction?: Transaction
-  }
+export type TransactionItem = {
+  id: string
+  quantity: number
+  priceUnit: number
+  subtotal: number
+  articleId: string
+  article: Article
+  transactionId: string
+  // para evitar ciclos fuertes, puedes usar Transaction | null o no incluirla
+  transaction?: Transaction
+}
 
-  export type Transaction = {
-    id: string
-    reference: string | null
-    subtotal: number
-    total: number
-    payMethods: string
-    status: string
-    client: Client
-    registered_by: string
-    transaction_date: Date
-    // una transacción con varios artículos
-    items: TransactionItem[]
-  }
+export type Transaction = {
+  id: string
+  reference: string | null
+  subtotal: number
+  total: number
+ 
+  status: string
+  client: Client
+  registered_by: string
+  transaction_date: Date
+  // una transacción con varios artículos
+  items: TransactionItem[]
+  payments: Payment[]
+}
+
+export type Payment = {
+  id: string
+  reference_number: string | null
+  amount: number
+  payMethod: string
+  paidAt: Date
+  transaction: Transaction
+  registered_by: string
+  updated_by: string | null
+  transactionId: string
+  // una transacción con varios artículos
+}

@@ -3,81 +3,74 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { toast } from "sonner";
 
-export const useCreateTransaction = () => {
+export const useCreatePayment = () => {
   const queryClient = useQueryClient();
  
   const createMutation = useMutation({
     mutationFn: async (values: {
-      reference: string | null,
-      subtotal: number,
-      total: number,
-      status: string,
-      clientId: string,
-      items: Array<{  // NUEVO: array de artículos
-        articleId: string,
-        quantity: number,
-        priceUnit: number,
-        subtotal: number
-      }>,
-      registered_by: string,
-      transaction_date: Date
+      reference_number: string,
+      amount: number,
+      payMethod: string,
+      transactionId: string,
+      registered_by: string | null,
+      paidAt: Date
     }) => {
-      const res= await axios.post(`/api/transactions`, {
+      const res= await axios.post(`/api/payments`, {
         ...values
       });
     
       return res.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      toast.success("¡Transacción creada!", {
-        description: "¡La transacción y sus artículos se registraron correctamente!",
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
+      toast.success("Pago Realizado!", {
+        description: "¡El pago se registro correctamente!",
       });
     },
     onError: (error: any) => {
       toast.error("Error", {
-        description: error.response?.data?.message || "Error al crear la transacción",
+        description: error.response?.data?.message || "Error al registrar el pago",
       });
     },
   });
 
   return {
-    createTransaction: createMutation
+    createPayment: createMutation
   };
 };
 
 
 
-export const useGetTransactions = () => {
-  const transactionQuery = useQuery({
-    queryKey: ["transaction"],
-    queryFn: async () => {
-      const {data} = await axios.get('/api/transactions'); // Adjust the endpoint as needed
-      return data as Transaction[];
-    }
-  });
-  return {
-    data: transactionQuery.data,
-    loading: transactionQuery.isLoading,
-    error: transactionQuery.isError // Function to call the query
-  };
-};
+// export const useGetTransactions = () => {
+//   const transactionQuery = useQuery({
+//     queryKey: ["transaction"],
+//     queryFn: async () => {
+//       const {data} = await axios.get('/api/transactions'); // Adjust the endpoint as needed
+//       return data as Transaction[];
+//     }
+//   });
+//   return {
+//     data: transactionQuery.data,
+//     loading: transactionQuery.isLoading,
+//     error: transactionQuery.isError // Function to call the query
+//   };
+// };
 
-export const useGetTransaction = (id: string | null) => {
-  const transactionQuery = useQuery({
-    queryKey: ["transaction"],
-    queryFn: async () => {
-      const {data} = await axios.get(`/api/transactions/${id}`); // Adjust the endpoint as needed
-      return data as Transaction;
-    },
-    enabled: !!id
-  });
-  return {
-    data: transactionQuery.data,
-    loading: transactionQuery.isLoading,
-    error: transactionQuery.isError // Function to call the query
-  };
-};
+// export const useGetTransaction = (id: string | null) => {
+//   const transactionQuery = useQuery({
+//     queryKey: ["transaction"],
+//     queryFn: async () => {
+//       const {data} = await axios.get(`/api/transactions/${id}`); // Adjust the endpoint as needed
+//       return data as Transaction;
+//     },
+//     enabled: !!id
+//   });
+//   return {
+//     data: transactionQuery.data,
+//     loading: transactionQuery.isLoading,
+//     error: transactionQuery.isError // Function to call the query
+//   };
+// };
 
 export const useDeleteTransaction = () => {
 

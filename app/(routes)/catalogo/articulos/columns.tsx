@@ -57,15 +57,6 @@ export const columns: ColumnDef<Article>[] = [
     },
   },
   {
-    accessorKey: "quantity",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Cantidad' />
-    ),
-    cell: ({ row }) => {
-      return <div className="text-center font-bold">{convertAmountFromMiliunits(row.original.quantity)}</div>
-    },
-  },
-  {
     accessorKey: "category",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Categoria' />
@@ -74,6 +65,25 @@ export const columns: ColumnDef<Article>[] = [
       return <div className="text-center text-muted-foreground italic font-medium">{row.original.category.name}</div>
     },
   },
+  {
+    accessorKey: "quantity",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Cantidad' />
+    ),
+    cell: ({ row }) => {
+      return <div className="text-center font-bold">{row.original.quantity}</div>
+    },
+  },
+  {
+    accessorKey: "priceUnit",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Precio Unitario' />
+    ),
+    cell: ({ row }) => {
+      return <div className="text-center font-bold">${row.original.priceUnit} C/U</div>
+    },
+  },
+  
   {
     accessorKey: "provider",
     header: ({ column }) => (

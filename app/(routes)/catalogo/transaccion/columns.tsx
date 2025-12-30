@@ -41,10 +41,10 @@ export const columns: ColumnDef<Transaction>[] = [
   {
     accessorKey: "reference",
     header: ({ column }) => (
-      <DataTableColumnHeader filter column={column} title="reference" />
+      <DataTableColumnHeader filter column={column} title="Descripcion" />
     ),
     cell: ({ row }) => (
-      <div className="text-center font-bold">{row.original.reference ?? 'POR CARGAR'}</div>
+      <div className="text-center font-bold">{row.original.reference}</div>
     ),
   },
   {
@@ -111,17 +111,15 @@ export const columns: ColumnDef<Transaction>[] = [
     ),
     cell: ({ row }) => {
       const client = row.original.client
-      const debt = client.debt || 0
-      const isDebtFree = debt === 0
-      
+      const debt = row.original.status === "PENDIENTE" ? row.original.payments.reduce((sum, payment) => sum + payment.amount, 0) : 0;
       return (
         <div className="text-center font-medium">
           <div className="italic">{client.first_name} {client.last_name}</div>
-          <div className={`font-bold ${isDebtFree 
+          <div className={`font-bold ${debt === 0
             ? 'text-green-600 dark:text-green-400' 
             : 'text-red-600 dark:text-red-400'
           }`}>
-            Deuda: ${debt.toLocaleString()}
+            Deuda: ${debt}
           </div>
         </div>
       )

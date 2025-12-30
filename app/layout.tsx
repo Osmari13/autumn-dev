@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import QueryClientContextProvider from "@/providers/QueryProvider";
 import { ThemeProvider } from "next-themes";
 import { Poppins } from "next/font/google";
+// @ts-ignore: side-effect import for global CSS (add a .d.ts file to declare '*.css' to fully fix)
 import "./globals.css";
 import ClientSessionProvider from "@/providers/AuthProvider";
 import { Metadata } from "next";
@@ -10,7 +11,7 @@ const poppins = Poppins({ subsets: ["latin"], weight: ["100", "200", "300", "400
 
 export const metadata: Metadata = {
   title: "Autumn",
-  description: "Autumn PZO",
+  description: "Autumn - Inventory and Sales Management System",
 };
 
 export default function RootLayout({

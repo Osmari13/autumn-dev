@@ -105,8 +105,9 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       where: { id },
       data: {
         first_name: data.first_name,
-        last_name: data.last_name ,
+        last_name: data.last_name,
         phone_number: data.phone_number ?? null,
+        debt: data.debt ?? null,
         updated_by: data.updated_by ?? null,
       },
     });
