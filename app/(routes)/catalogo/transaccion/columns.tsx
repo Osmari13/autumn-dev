@@ -120,6 +120,7 @@ export const columns: ColumnDef<Transaction>[] = [
             : 'text-red-600 dark:text-red-400'
           }`}>
             Deuda: ${debt}
+            
           </div>
         </div>
       )

@@ -16,11 +16,24 @@ export async function GET(request: Request) {
       }
     );
   }
-
   try {
-    const transaction = await db.transaction.findUnique({
+    const transaction: Transaction | null  = await db.transaction.findUnique({
       where: {
         id: id, // Ensure the ID is a number
+      },
+       include: {
+        client: true,
+        payments: true,
+        items: {
+          include: {
+            article: {
+              include: {
+                provider: true,
+                category: true,
+              },
+            },
+          },
+        },
       },
     });
 

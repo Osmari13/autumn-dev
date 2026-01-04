@@ -114,8 +114,6 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
   const { data: articles, loading: articlesLoading, error: articlesError } = useGetArticles();
 
   const { updateClient } = useUpdateClient();
-  
-  //FALTA APLICAR EL PAGO POR DOS PARTES
 
   const { createTransaction } = useCreateTransaction();
   const { createPayment } = useCreatePayment();

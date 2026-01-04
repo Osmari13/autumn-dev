@@ -26,7 +26,6 @@ import {
 import { Link, ListRestart, Plus } from "lucide-react"
 import { useState } from "react"
 import { RegisterArticleDialog } from "@/components/dialogs/RegisterArticleDialog"
-import { CreateTransactionDialog } from "@/components/dialogs/CreateTransactionDialog"
 import TransactionForm from "@/components/forms/TransactionForm"
 import { useRouter } from "next/navigation"
 

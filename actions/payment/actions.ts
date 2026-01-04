@@ -39,38 +39,42 @@ export const useCreatePayment = () => {
   };
 };
 
+export const useGetTransactions = () => {
+  const transactionQuery = useQuery({
+    queryKey: ["transaction"],
+    queryFn: async () => {
+      const {data} = await axios.get('/api/transactions'); // Adjust the endpoint as needed
+      return data as Transaction[];
+    }
+  });
+  return {
+    data: transactionQuery.data,
+    loading: transactionQuery.isLoading,
+    error: transactionQuery.isError // Function to call the query
+  };
+};
 
+export const useGetTransaction = (id: string | null) => {
+  const transactionQuery = useQuery({
+    queryKey: ["transaction", id], // ✅ FIX
+    queryFn: async () => {
+      const { data } = await axios.get(`/api/transactions/${id}`);
+      return data as Transaction;
+    },
+     enabled: !!id && id !== "null", // Más estricto
+    staleTime: 5 * 60 * 1000, // 5 minutos de cache
+    retry: 1,
+    // Evitar re-fetch automático
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
 
-// export const useGetTransactions = () => {
-//   const transactionQuery = useQuery({
-//     queryKey: ["transaction"],
-//     queryFn: async () => {
-//       const {data} = await axios.get('/api/transactions'); // Adjust the endpoint as needed
-//       return data as Transaction[];
-//     }
-//   });
-//   return {
-//     data: transactionQuery.data,
-//     loading: transactionQuery.isLoading,
-//     error: transactionQuery.isError // Function to call the query
-//   };
-// };
-
-// export const useGetTransaction = (id: string | null) => {
-//   const transactionQuery = useQuery({
-//     queryKey: ["transaction"],
-//     queryFn: async () => {
-//       const {data} = await axios.get(`/api/transactions/${id}`); // Adjust the endpoint as needed
-//       return data as Transaction;
-//     },
-//     enabled: !!id
-//   });
-//   return {
-//     data: transactionQuery.data,
-//     loading: transactionQuery.isLoading,
-//     error: transactionQuery.isError // Function to call the query
-//   };
-// };
+  return {
+    data: transactionQuery.data,
+    loading: transactionQuery.isLoading,
+    error: transactionQuery.isError,
+  };
+};
 
 export const useDeleteTransaction = () => {
 
@@ -98,7 +102,36 @@ export const useDeleteTransaction = () => {
   };
 };
 
+  export const useUpdateStatusTransaction = () => {
 
+    const queryClient = useQueryClient();
+    const updateMutation = useMutation({
+      mutationFn: async (values: {
+        id: string;
+        status: string;
+        updated_by?: string | null
+      }) => {
+        await axios.patch(`/api/transactions/${values.id}`, {
+          ...values
+        });
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["transactions"] });
+        toast.success("¡Actualizado!", {
+          description: "¡El estado de la transacción ha sido actualizado correctamente!",
+        });
+      },
+      onError: (error: Error) => {
+        toast.error("Oops!", {
+          description: `¡Hubo un error al actualizar el estado de la transacción!: ${error}`,
+        });
+      },
+    });
+
+    return {
+      updateStatusTransaction: updateMutation, // Function to call the mutation
+    };
+  };
 
   export const useUpdateTransaction = () => {
 
@@ -116,7 +149,8 @@ export const useDeleteTransaction = () => {
         clientId: string,
         articleId: string,
         registered_by: string,
-        transaction_date: Date
+        transaction_date: Date ,
+        updated_by?: string | null
       }) => {
         await await axios.patch(`/api/transactions/${values.id}`, {
             ...values
