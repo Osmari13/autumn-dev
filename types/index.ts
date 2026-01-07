@@ -26,7 +26,21 @@ export type Provider = {
   phone_number?:  string | null,
   registered_by?: string | null,
   updated_by?:    string | null,
-  // article :Article,
+  providerPayments?: ProviderPayment[],     // Pagos realizados A este proveedor (gastos)
+  articles?: Article[], 
+}
+
+export type ProviderPayment = {
+  id: string,
+  amount: number,           // Monto pagado al proveedor
+  reference?: string | null, // Referencia bancaria
+  payMethod: string,        // "EFECTIVO", "PAGO_MOVIL", etc.
+  paidAt: Date,             // Fecha del pago
+  image?: string | null,    // Comprobante de pago (imagen)
+  providerId: string,
+  
+  registered_by?: string | null,
+  createdAt?: Date,
 }
 
 

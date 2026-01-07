@@ -49,7 +49,6 @@ model Client {
   last_name  String
 
   phone_number String?
-  debt Float @default(0)
   transaction Transaction[]
   registered_by String?
   updated_by String?
@@ -57,7 +56,6 @@ model Client {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
-
 
 
 model Provider {
@@ -69,11 +67,29 @@ model Provider {
   phone_number String?
   registered_by String?
   updated_by String?
+  providerPayment   ProviderPayment[] 
 
   article Article[]
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+model ProviderPayment {
+  id            String   @id @default(cuid())
+  amount        Float    // Monto pagado al proveedor
+  reference     String?  // Referencia bancaria
+  payMethod     String   // "EFECTIVO", "PAGO_MOVIL", etc.
+  paidAt        DateTime // Fecha del pago
+  image         String?  // Imagen del comprobante de pago
+  providerId    String
+  provider      Provider @relation(fields: [providerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  
+  registered_by String?
+  updated_by String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Category {
