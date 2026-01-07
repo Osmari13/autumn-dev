@@ -25,6 +25,16 @@ export async function POST(request: Request) {
       );
     }
 
+    const payments = await db.payment.findMany({
+      where: { reference_number: data.reference_number },
+    });
+    if (payments.length > 0) {
+      return NextResponse.json(
+        {   message: "El número de referencia ya existe" },
+        { status: 400 }
+      );
+    }
+
     const paid = transaction.payments.reduce((s, p) => s + p.amount, 0)
     const remaining = transaction.total - paid
 
@@ -43,11 +53,12 @@ export async function POST(request: Request) {
         payMethod: data.payMethod,
         transactionId: data.transactionId,
         registered_by: data.registered_by ?? null,
-        paidAt: data.paidAt
+        paidAt: data.paidAt,
+        image: data.image ?? null,
       },
     });
 
-    const newPaid = paid + data.amount
+    // const newPaid = paid + data.amount
     // await db.transaction.update({
     //   where: { id: data.transactionId },
     //   data: {
@@ -68,4 +79,6 @@ export async function POST(request: Request) {
     );
   }
 }
+
+
 

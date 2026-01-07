@@ -66,6 +66,7 @@ export async function GET(request: Request) {
 
 
 
+
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   try {
     const { id } = params; // Get ID from URL parameters

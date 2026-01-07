@@ -94,7 +94,6 @@ export const useCreateClient = () => {
         first_name?: string;    // New location name
         last_name?: string;    // New location name
         phone_number?: string | null ;
-        debt?: number;
         updated_by?: string;
       }) => {
         await await axios.patch(`/api/clients/${values.id}`, {

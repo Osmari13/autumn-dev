@@ -1,4 +1,4 @@
-import { Transaction } from "@/types";
+import { Payment, Transaction } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ export const useCreatePayment = () => {
       transactionId: string,
       registered_by: string | null,
       paidAt: Date
+      image?: string | null
     }) => {
       const res= await axios.post(`/api/payments`, {
         ...values
@@ -39,140 +40,90 @@ export const useCreatePayment = () => {
   };
 };
 
-export const useGetTransactions = () => {
-  const transactionQuery = useQuery({
-    queryKey: ["transaction"],
+export const useGetPaymentsByTransactions = (transactionId: string | null) => {
+  const paymentsQuery = useQuery({
+    queryKey: ["payments", transactionId],
     queryFn: async () => {
-      const {data} = await axios.get('/api/transactions'); // Adjust the endpoint as needed
-      return data as Transaction[];
+      const {data} = await axios.get(`/api/payments/${transactionId}`); // Adjust the endpoint as needed
+      return data as Payment[];
     }
   });
   return {
-    data: transactionQuery.data,
-    loading: transactionQuery.isLoading,
-    error: transactionQuery.isError // Function to call the query
+    data: paymentsQuery.data,
+    loading: paymentsQuery.isLoading,
+    error: paymentsQuery.isError // Function to call the query
   };
 };
 
-export const useGetTransaction = (id: string | null) => {
-  const transactionQuery = useQuery({
-    queryKey: ["transaction", id], // ✅ FIX
-    queryFn: async () => {
-      const { data } = await axios.get(`/api/transactions/${id}`);
-      return data as Transaction;
-    },
-     enabled: !!id && id !== "null", // Más estricto
-    staleTime: 5 * 60 * 1000, // 5 minutos de cache
-    retry: 1,
-    // Evitar re-fetch automático
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-  });
 
-  return {
-    data: transactionQuery.data,
-    loading: transactionQuery.isLoading,
-    error: transactionQuery.isError,
-  };
-};
+// export const useDeleteTransaction = () => {
 
-export const useDeleteTransaction = () => {
+//   const queryClient = useQueryClient();
 
-  const queryClient = useQueryClient();
+//   const deleteMutation = useMutation({
+//     mutationFn: async (id: string) => {
+//       await axios.delete(`/api/transactions/${id}`); // Include ID in the URL
+//     },
+//     onSuccess: () => {
+//       queryClient.invalidateQueries({ queryKey: ["transactions"] });
+//       toast.success("¡Eliminado!", {
+//         description: "¡Las Transaccion ha sido eliminada correctamente!"
+//       });
+//     },
+//     onError: () => {
+//       toast.error("Oops!", {
+//         description: "¡Hubo un error al eliminar la Transaccion!"
+//       });
+//     },
+//   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      await axios.delete(`/api/transactions/${id}`); // Include ID in the URL
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      toast.success("¡Eliminado!", {
-        description: "¡Las Transaccion ha sido eliminada correctamente!"
-      });
-    },
-    onError: () => {
-      toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar la Transaccion!"
-      });
-    },
-  });
+//   return {
+//     deleteTransaction: deleteMutation,
+//   };
+// };
 
-  return {
-    deleteTransaction: deleteMutation,
-  };
-};
+  
 
-  export const useUpdateStatusTransaction = () => {
+  // export const useUpdateTransaction = () => {
 
-    const queryClient = useQueryClient();
-    const updateMutation = useMutation({
-      mutationFn: async (values: {
-        id: string;
-        status: string;
-        updated_by?: string | null
-      }) => {
-        await axios.patch(`/api/transactions/${values.id}`, {
-          ...values
-        });
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["transactions"] });
-        toast.success("¡Actualizado!", {
-          description: "¡El estado de la transacción ha sido actualizado correctamente!",
-        });
-      },
-      onError: (error: Error) => {
-        toast.error("Oops!", {
-          description: `¡Hubo un error al actualizar el estado de la transacción!: ${error}`,
-        });
-      },
-    });
+  //   const queryClient = useQueryClient();
 
-    return {
-      updateStatusTransaction: updateMutation, // Function to call the mutation
-    };
-  };
+  //   const updateMutation = useMutation({
+  //     mutationFn: async (values: {
+  //       id: string;             
+  //       name: string,
+  //       quantity: number,
+  //       subtotal: number,
+  //       total: number,
+  //       payMethods: string,
+  //       status: string,
+  //       clientId: string,
+  //       articleId: string,
+  //       registered_by: string,
+  //       transaction_date: Date ,
+  //       updated_by?: string | null
+  //     }) => {
+  //       await await axios.patch(`/api/transactions/${values.id}`, {
+  //           ...values
 
-  export const useUpdateTransaction = () => {
+  //       });
+  //     },
+  //     onSuccess: () => {
+  //       // Invalidate the 'transactions' query to refresh the data
+  //       queryClient.invalidateQueries({ queryKey: ["transactions"] });
+  //       toast.success("¡Actualizado!", {
+  //         description: "¡La transaccion ha sido actualizada correctamente!",
+  //       });
+  //     },
+  //     onError: (error: Error) => {
+  //       toast.error("Oops!", {
+  //         description: `¡Hubo un error al actualizar la transaccion!: ${error}`,
+  //       });
+  //     },
+  //   });
 
-    const queryClient = useQueryClient();
-
-    const updateMutation = useMutation({
-      mutationFn: async (values: {
-        id: string;             
-        name: string,
-        quantity: number,
-        subtotal: number,
-        total: number,
-        payMethods: string,
-        status: string,
-        clientId: string,
-        articleId: string,
-        registered_by: string,
-        transaction_date: Date ,
-        updated_by?: string | null
-      }) => {
-        await await axios.patch(`/api/transactions/${values.id}`, {
-            ...values
-
-        });
-      },
-      onSuccess: () => {
-        // Invalidate the 'transactions' query to refresh the data
-        queryClient.invalidateQueries({ queryKey: ["transactions"] });
-        toast.success("¡Actualizado!", {
-          description: "¡La transaccion ha sido actualizada correctamente!",
-        });
-      },
-      onError: (error: Error) => {
-        toast.error("Oops!", {
-          description: `¡Hubo un error al actualizar la transaccion!: ${error}`,
-        });
-      },
-    });
-
-    return {
-      updateTransaction: updateMutation, // Function to call the mutation
-    };
-  };
+  //   return {
+  //     updateTransaction: updateMutation, // Function to call the mutation
+  //   };
+  // };
 

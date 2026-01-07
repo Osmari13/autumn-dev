@@ -111,7 +111,7 @@ export const columns: ColumnDef<Transaction>[] = [
     ),
     cell: ({ row }) => {
       const client = row.original.client
-      const debt = row.original.status === "PENDIENTE" ? row.original.payments.reduce((sum, payment) => sum + payment.amount, 0) : 0;
+      const debt = row.original.status === "PENDIENTE" ? row.original.total - row.original.payments.reduce((sum, payment) => sum + payment.amount, 0) : 0;
       return (
         <div className="text-center font-medium">
           <div className="italic">{client.first_name} {client.last_name}</div>

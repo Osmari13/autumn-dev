@@ -14,7 +14,8 @@ import ArticleForm from "../forms/ArticleForm"
 import TransactionForm from "../forms/TransactionForm"
 import { useDeleteTransaction } from "@/actions/transactions/actions"
 import PaymentTransactionForm from "../forms/PaymentTransactionForm"
-import { useGetTransaction } from "@/actions/payment/actions"
+import { useGetTransaction } from "@/actions/transactions/actions"
+import { useGetPaymentsByTransactions } from "@/actions/payment/actions"
 
 const TransactionDropdownActions = ({ id }: { id: string }) => {
   const [isDropdownMenuOpen, setIsDropdownMenuOpen] = useState<boolean>(false);
@@ -25,6 +26,7 @@ const TransactionDropdownActions = ({ id }: { id: string }) => {
   const { deleteTransaction } = useDeleteTransaction();
   const stableId = useMemo(() => id ?? null, [id]);
   const { data: transaction, loading, error } = useGetTransaction(stableId);
+  const { data: payments } = useGetPaymentsByTransactions(stableId);
 
   const handleDelete = async (id: string) => {
     await deleteTransaction.mutateAsync(id);
@@ -76,7 +78,6 @@ const TransactionDropdownActions = ({ id }: { id: string }) => {
         open={isDialogOpen1}
         onOpenChange={(open) => {
           // Solo sincroniza el estado con el valor que entrega Radix
-          console.log("onOpenChange:", open);
           setIsDialogOpen1(open)
         }}
         modal={true}
@@ -88,7 +89,7 @@ const TransactionDropdownActions = ({ id }: { id: string }) => {
               Registre los Detalles de la Transaccion del Articulo
             </DialogDescription>
           </DialogHeader>
-           {isDialogOpen1 && <PaymentTransactionForm id={id} transaction={transaction} onClose={() => setIsDialogOpen1(false)} />}
+           {isDialogOpen1 && <PaymentTransactionForm payments={payments} transaction={transaction} onClose={() => setIsDialogOpen1(false)} />}
         </DialogContent>
       </Dialog>
 

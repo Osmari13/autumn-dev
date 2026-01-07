@@ -70,13 +70,28 @@ export const columns: ColumnDef<Client>[] = [
         <DataTableColumnHeader filter column={column} title='Deuda'/>
     ),
     cell: ({ row }) => {   
+     const debt =
+      row.original.transaction
+        ?.filter((transaction) => transaction.status === "PENDIENTE")
+        .reduce((clientDebt, transaction) => {
+          const paymentsSum =
+            transaction.payments?.reduce(
+              (sum, payment) => sum + payment.amount,
+              0
+            ) ?? 0;
+
+          const transactionDebt = transaction.total - paymentsSum;
+
+          return clientDebt + transactionDebt;
+        }, 0) ?? 0;
+     
         return (
           <div className="text-center font-medium">
-            <div className={`font-bold ${row.original.debt === 0 
+            <div className={`font-bold ${debt === 0 
                 ? 'text-green-600 dark:text-green-400' 
                 : 'text-red-600 dark:text-red-400'
               }`}>
-                ${row.original.debt}
+                ${debt}
               </div>
 
           </div>

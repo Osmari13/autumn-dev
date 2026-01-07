@@ -12,10 +12,9 @@ export type Client = {
   id: string,
   first_name: string,
   last_name: string,
-  debt: number,
   phone_number: string | null, 
   registered_by: string | null, 
-  Transactions?: Transaction[],
+  transaction?: Transaction[],
 }
 
 
@@ -102,5 +101,6 @@ export type Payment = {
   registered_by: string | null
   updated_by: string | null
   transaction?: Transaction
+  image?: string | null
   // una transacción con varios artículos
 }

@@ -65,19 +65,26 @@ export const useGetTransactions = () => {
 
 export const useGetTransaction = (id: string | null) => {
   const transactionQuery = useQuery({
-    queryKey: ["transaction"],
+    queryKey: ["transaction", id], // ✅ FIX
     queryFn: async () => {
-      const {data} = await axios.get(`/api/transactions/${id}`); // Adjust the endpoint as needed
+      const { data } = await axios.get(`/api/transactions/${id}`);
       return data as Transaction;
     },
-    enabled: !!id
+     enabled: !!id && id !== "null", // Más estricto
+    staleTime: 5 * 60 * 1000, // 5 minutos de cache
+    retry: 1,
+    // Evitar re-fetch automático
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
+
   return {
     data: transactionQuery.data,
     loading: transactionQuery.isLoading,
-    error: transactionQuery.isError // Function to call the query
+    error: transactionQuery.isError,
   };
 };
+
 
 export const useDeleteTransaction = () => {
 
@@ -105,6 +112,36 @@ export const useDeleteTransaction = () => {
   };
 };
 
+export const useUpdateStatusTransaction = () => {
+
+    const queryClient = useQueryClient();
+    const updateMutation = useMutation({
+      mutationFn: async (values: {
+        id: string;
+        status: string;
+        updated_by?: string | null
+      }) => {
+        await axios.patch(`/api/transactions/${values.id}`, {
+          ...values
+        });
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["transactions"] });
+        toast.success("¡Actualizado!", {
+          description: "¡El estado de la transacción ha sido actualizado correctamente!",
+        });
+      },
+      onError: (error: Error) => {
+        toast.error("Oops!", {
+          description: `¡Hubo un error al actualizar el estado de la transacción!: ${error}`,
+        });
+      },
+    });
+
+    return {
+      updateStatusTransaction: updateMutation, // Function to call the mutation
+    };
+  };
 
 
   export const useUpdateTransaction = () => {

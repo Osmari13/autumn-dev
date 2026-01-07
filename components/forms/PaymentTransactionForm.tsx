@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import {
   Popover,
@@ -17,25 +10,18 @@ import {
 import { cn, convertAmountFromMiliunits, convertAmountToMiliunits } from "@/lib/utils";
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueryClient } from "@tanstack/react-query";
-import { useDebounce } from "@uidotdev/usehooks";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Check, ChevronsUpDown, Loader2, RotateCw } from "lucide-react";
+import { CalendarIcon, Check, ChevronsUpDown, Loader2, RotateCw, Upload, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from 'react-hook-form';
 import { toast } from "sonner";
 import { z } from 'zod';
-import { CreateClientDialog } from "../dialogs/CreateClientDialog";
-import { RegisterProviderDialog } from "../dialogs/RegisterProviderDialog";
 
 import { Button } from '../ui/button';
-import { AmountInput } from "../misc/AmountInput";
 import { Article, Payment, Transaction, TransactionItem, TransactionItemForm } from "@/types";
-import {useGetArticle, useGetArticles } from "@/actions/articles/actions";
 import { useGetClients, useUpdateClient } from "@/actions/clients/actions";
-import { useCreateTransaction, useGetTransaction } from "@/actions/transactions/actions";
 import {
   Select,
   SelectContent,
@@ -45,9 +31,9 @@ import {
 } from "@/components/ui/select";
 import { Calendar } from "../ui/calendar";
 import { Input } from '../ui/input';
-import { RegisterArticleDialog } from "../dialogs/RegisterArticleDialog";
-import { hasExternalOtelApiPackage } from "next/dist/build/webpack-config";
-import { useCreatePayment, useUpdateStatusTransaction, useUpdateTransaction } from "@/actions/payment/actions";
+import { useCreatePayment } from "@/actions/payment/actions";
+import Image from "next/image";
+import { useUpdateStatusTransaction } from "@/actions/transactions/actions";
 
 const formSchema = z.object({
 
@@ -56,19 +42,19 @@ const formSchema = z.object({
   amount: z.string().optional(),
   reference_number: z.string(),
   paidAt: z.date().optional(),
+  image: z.string().nullable().optional(),
   
 })
 
 interface FormProps {
   onClose: () => void;
-  id?: string,
+  payments?: Payment[],
   transaction?: Transaction
 }
 
-const PaymentTransactionForm = ({ id , transaction, onClose}: FormProps) => {
+const PaymentTransactionForm = ({ payments , transaction, onClose}: FormProps) => {
   const { data: session } = useSession()
   const [openPaidAt, setOpenPaidAt] = useState(false)
-  const { updateClient } = useUpdateClient();
   const { updateStatusTransaction } = useUpdateStatusTransaction();
   const { createPayment } = useCreatePayment();
   // const [payments, setPayments] = useState<Payment[]>([]); // pagos nuevos del formulario
@@ -83,20 +69,67 @@ const PaymentTransactionForm = ({ id , transaction, onClose}: FormProps) => {
       paidAt: new Date()
     }
   });
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
+  const handleImageUpload = async (file: File) => {
+   
+    setSelectedFile(file);
+    // Crear una URL de objeto para previsualizar la imagen inmediatamente
+    setPreviewImage(URL.createObjectURL(file));
 
+  };
+  const removeImage = () => {
+    form.setValue("image", null)
+    setPreviewImage(null)
+  }
 
 //PROBAR EL AGREGAR EL PAGO Y LA ACTUALIZACION DEL CLIENTE Y TRANSACCION
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    let imageUrl: string | null = values.image || null; 
+
     if (!transaction) {
       toast.error("La transacción no está cargada aún");
       return;
     }
+    if (selectedFile) {
+      const formData = new FormData();
+      formData.append("image", selectedFile);
+
+      try {
+        // Envía el archivo a tu API de subida de imágenes
+        const uploadResponse = await fetch("/api/upload-image", { // Crea esta API Route
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error("Error al subir la imagen");
+        }
+
+        const uploadData = await uploadResponse.json();
+        imageUrl = uploadData.imageUrl; // Asume que tu API devuelve la URL de la imagen
+        form.setValue("image", imageUrl ?? ""); // Actualiza el valor del formulario con la URL
+      } catch (uploadError) {
+        console.error("Error al subir la imagen:", uploadError);
+        toast.error("Error al subir la imagen.", {
+          description: "No se pudo subir la imagen del artículo.",
+        });
+        return; // Detener el envío del formulario si falla la subida de la imagen
+      }
+    }
     try {
+      const paidSoFar = (payments?.reduce((sum, payment) => sum + payment.amount, 0) ) || 0;
+      const totalPaid = paidSoFar + parseFloat(values.amount || "0");
+      if (totalPaid > transaction.total) {
+        toast.error("El monto pagado excede el total de la transacción.");
+        return;
+      }
+      const status = totalPaid == transaction.total ? "PAGADO" : "PENDIENTE";
       const registered_by = session?.user.username || "";
 
       const amount = parseFloat(values.amount || "0");
 
-      const status = amount >= transaction.total ? "PAGADO" : "PENDIENTE";
 
       const res = await createPayment.mutateAsync({
         transactionId: transaction.id,
@@ -108,11 +141,6 @@ const PaymentTransactionForm = ({ id , transaction, onClose}: FormProps) => {
       });
      
       if (res){
-        await updateClient.mutateAsync({
-          id: transaction.client?.id,
-          debt: parseFloat(transaction.total.toString()) - parseFloat(values.amount || "0.0"),
-          updated_by: registered_by
-        });
 
         await updateStatusTransaction.mutateAsync({
           id: transaction.id,
@@ -131,136 +159,160 @@ const PaymentTransactionForm = ({ id , transaction, onClose}: FormProps) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="h-full">
-        <div className="flex flex-col h-full max-w-7xl mx-auto p-6 space-y-6">
-    
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1">
-          
-            <div className="bg-card border rounded-lg p-6 shadow-sm flex flex-col">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Detalles de Venta</h2>
-           
-              </div>           
-
-              <div className="space-y-4 flex-1">
-                
-                <h2 className="text-lg font-semibold">Detalles de Pago</h2>
-                <FormField
-                  control={form.control}
-                  name="reference_number"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-bold">Referencia</FormLabel>
-                      <FormControl>
-                        <Input  autoFocus={false} className="w-[200px] shadow-none border-b-1 border-r-0 border-t-0 border-l-0" placeholder="5678" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Numero de referencia para registrar pago del cliente
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {/* Referencia */}
+        <FormField
+          control={form.control}
+          name="reference_number"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="font-semibold text-sm">Referencia</FormLabel>
+              <FormControl>
+                <Input
+                  autoFocus
+                  placeholder="5678"
+                  className="h-9 shadow-none border-b border-r-0 border-t-0 border-l-0"
+                  {...field}
                 />
-               <FormField
-                  control={form.control}
-                  name="paidAt"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel className="font-bold my-2">Fecha de Pago</FormLabel>
-                      <Popover open={openPaidAt} onOpenChange={setOpenPaidAt}>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              type="button"
-                              variant={"outline"}
-                              className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !field.value && "text-muted-foreground",
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {field.value ? (
-                                format(field.value, "PPP", { locale: es })
-                              ) : (
-                                <span>Seleccione una fecha</span>
-                              )}
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={(e) => {
-                              field.onChange(e)
-                              setOpenPaidAt(false)
-                            }}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormDescription>Fecha que pago el producto</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              </FormControl>
+              <FormDescription className="text-xs">Número de referencia del pago</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-              <FormField
-                control={form.control}
-                name="amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-bold">Monto Pagado</FormLabel>
-                    <FormControl>
-                      <AmountInput
-                        placeholder="0.00"
-                        value={field.value ?? ""}                         // siempre string
-                        onChange={(val) => {
-                          
-                          if (val == null) {
-                            field.onChange("")                           // vacío si borran todo
-                          } else if (field.value === "" || field.value === "0.00") {
-                            field.onChange(val)
-                          } else {
-                            field.onChange(val)
-                          }
-                        }}
-                        disabled={field.disabled}
+        {/* Fecha de Pago */}
+        <FormField
+          control={form.control}
+          name="paidAt"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel className="font-semibold text-sm">Fecha de Pago</FormLabel>
+              <Popover open={openPaidAt} onOpenChange={setOpenPaidAt}>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        "h-9 justify-start text-left font-normal text-sm",
+                        !field.value && "text-muted-foreground",
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {field.value ? format(field.value, "PPP", { locale: es }) : <span>Seleccione una fecha</span>}
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={(e) => {
+                      field.onChange(e)
+                      setOpenPaidAt(false)
+                    }}
+                    disabled={(date) => date > new Date()}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormDescription className="text-xs">Fecha en que se realizó el pago</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Monto Pagado */}
+        <FormField
+          control={form.control}
+          name="amount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="font-semibold text-sm">Monto Pagado</FormLabel>
+              <FormControl>
+                <Input type="number" step="0.01" min="0" placeholder="0.00" className="h-9" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Método de Pago */}
+        <FormField
+          control={form.control}
+          name="payMethod"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="font-semibold text-sm">Método de Pago</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Seleccione el método de pago" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="PAGO_MOVIL">Pago Móvil</SelectItem>
+                  <SelectItem value="EFECTIVO">Efectivo</SelectItem>
+                  <SelectItem value="TRANSFERENCIA">Transferencia</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+         <FormField
+          control={form.control}
+          name="image"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="font-semibold text-sm">Imagen de Referencia</FormLabel>
+              <FormControl>
+                <div className="space-y-3">
+                  <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                    <div className="flex flex-col items-center justify-center pt-4 pb-4">
+                      <Upload className="h-5 w-5 text-muted-foreground mb-1" />
+                      <p className="text-xs text-muted-foreground text-center">Arrastra o haz clic para subir</p>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                               const file = e.target.files?.[0];
+                               if (file) {
+                                 handleImageUpload(file); // Función para manejar la subida
+                               }
+                             }}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {previewImage && (
+                    <div className="relative w-full h-24 rounded-lg overflow-hidden bg-muted/30 border border-muted-foreground/25">
+                      <img
+                        src={previewImage || "/placeholder.svg"}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="payMethod"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-bold">Método de Pago</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Seleccione el método de pago" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="PAGO_MOVIL">PAGO MÓVIL</SelectItem>
-                        <SelectItem value="EFECTIVO">EFECTIVO</SelectItem>
-                        <SelectItem value="TRANSFERENCIA">TRANSFERENCIA</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-                />
-              </div>
-            </div>
-          </div>
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        className="absolute top-1 right-1 bg-destructive hover:bg-destructive/90 text-white rounded-full p-1 transition-colors"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </FormControl>
+              <FormDescription className="text-xs">Foto o captura de pantalla del comprobante de pago</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <div className="bg-card border rounded-lg p-4 shadow-sm">
-            <Button disabled={createPayment.isPending} type="submit" className="w-full h-12 text-lg font-semibold">
+        {/* Botón de Envío */}
+      <Button disabled={createPayment.isPending} type="submit" className="w-full h-12 text-lg font-semibold">
               {createPayment.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -269,9 +321,7 @@ const PaymentTransactionForm = ({ id , transaction, onClose}: FormProps) => {
               ) : (
                 "Crear Pago"
               )}
-            </Button>
-          </div>
-        </div>
+        </Button>
       </form>
     </Form>
   );

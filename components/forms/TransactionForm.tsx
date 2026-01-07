@@ -113,8 +113,6 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
   const { data } = useGetTransaction(id ?? null);
   const { data: articles, loading: articlesLoading, error: articlesError } = useGetArticles();
 
-  const { updateClient } = useUpdateClient();
-
   const { createTransaction } = useCreateTransaction();
   const { createPayment } = useCreatePayment();
 
@@ -212,13 +210,6 @@ const updateTotals = () => {
           payMethod: values.payMethod || "PAGO_MOVIL",
           registered_by,
           paidAt: values.paidAt || new Date()
-        });
-      }
-      if (res){
-        await updateClient.mutateAsync({
-          id: values.clientId,
-          debt: parseFloat(values.total) - parseFloat(values.amount || "0.0"),
-          updated_by: registered_by
         });
       }
     
@@ -462,6 +453,8 @@ const updateTotals = () => {
                               field.onChange(e)
                               setOpenTransactionDate(false)
                             }}
+                            disabled={(date) => date > new Date()}
+
                             initialFocus
                           />
                         </PopoverContent>
@@ -550,6 +543,8 @@ const updateTotals = () => {
                               field.onChange(e)
                               setOpenPaidAt(false)
                             }}
+                            disabled={(date) => date > new Date()}
+
                             initialFocus
                           />
                         </PopoverContent>
