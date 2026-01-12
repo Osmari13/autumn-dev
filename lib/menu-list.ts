@@ -5,9 +5,7 @@ import {
   Handshake,
   LayoutGrid,
   LucideIcon,
-  Store,
-  TicketsPlane,
-  User,
+  User
 } from "lucide-react";
 
 type Submenu = {

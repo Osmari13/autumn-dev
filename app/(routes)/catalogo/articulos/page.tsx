@@ -1,11 +1,10 @@
 "use client"
 
-import ArticleForm from '@/components/forms/ArticleForm'
+import { useGetArticles } from '@/actions/articles/actions'
 import { ContentLayout } from '@/components/sidebar/ContentLayout'
 import { Loader2 } from 'lucide-react'
-import { DataTable } from './data-table'
 import { columns } from './columns'
-import { useGetArticles } from '@/actions/articles/actions'
+import { DataTable } from './data-table'
 
 
 const ArticlePage = () => {

@@ -7,21 +7,20 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn, convertAmountFromMiliunits, convertAmountToMiliunits } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CalendarIcon, Check, ChevronsUpDown, Loader2, RotateCw, Upload, X } from "lucide-react";
+import { CalendarIcon, Loader2, Upload, X } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useForm } from 'react-hook-form';
 import { toast } from "sonner";
 import { z } from 'zod';
 
-import { Button } from '../ui/button';
-import { Article, Payment, Transaction, TransactionItem, TransactionItemForm } from "@/types";
-import { useGetClients, useUpdateClient } from "@/actions/clients/actions";
+import { useCreatePayment } from "@/actions/payment/actions";
+import { useUpdateStatusTransaction } from "@/actions/transactions/actions";
 import {
   Select,
   SelectContent,
@@ -29,11 +28,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Payment, Transaction } from "@/types";
+import { Button } from '../ui/button';
 import { Calendar } from "../ui/calendar";
 import { Input } from '../ui/input';
-import { useCreatePayment } from "@/actions/payment/actions";
-import Image from "next/image";
-import { useUpdateStatusTransaction } from "@/actions/transactions/actions";
 
 const formSchema = z.object({
 

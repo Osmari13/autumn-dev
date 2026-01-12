@@ -1,13 +1,13 @@
 "use client"
 import { useGetArticles } from "@/actions/articles/actions";
+import Header from "@/components/sidebar/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {  Badge, BadgeAlert, Coffee, Leaf, Mail, MapPin, ShoppingBag, Sun, Wind } from "lucide-react";
+import { Badge, Coffee, Leaf, Mail, ShoppingBag, Sun, Wind } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { FaFacebook, FaInstagram } from "react-icons/fa";
 import { useCart } from "./cartContext";
-import Header from "@/components/sidebar/Header";
 
 export default function Home() {
   const { data: articles, loading, error } = useGetArticles()

@@ -23,11 +23,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Link, ListRestart, Plus } from "lucide-react"
-import { useState } from "react"
-import { RegisterArticleDialog } from "@/components/dialogs/RegisterArticleDialog"
-import TransactionForm from "@/components/forms/TransactionForm"
+import { ListRestart, Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -60,7 +58,6 @@ export function DataTable<TData, TValue>({
   })
 
   const isFiltered = table.getState().columnFilters.length > 0
-  const [open, setOpen] = useState(false)
   const router = useRouter()
 
   

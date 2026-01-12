@@ -14,11 +14,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn, convertAmountFromMiliunits, convertAmountToMiliunits } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueryClient } from "@tanstack/react-query";
-import { useDebounce } from "@uidotdev/usehooks";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Check, ChevronsUpDown, Loader2, RotateCw } from "lucide-react";
@@ -28,13 +26,10 @@ import { useForm } from 'react-hook-form';
 import { toast } from "sonner";
 import { z } from 'zod';
 import { CreateClientDialog } from "../dialogs/CreateClientDialog";
-import { RegisterProviderDialog } from "../dialogs/RegisterProviderDialog";
 
-import { Button } from '../ui/button';
-import { AmountInput } from "../misc/AmountInput";
-import { Article, Payment, Transaction, TransactionItem, TransactionItemForm } from "@/types";
-import {useGetArticle, useGetArticles } from "@/actions/articles/actions";
-import { useGetClients, useUpdateClient } from "@/actions/clients/actions";
+import { useGetArticles } from "@/actions/articles/actions";
+import { useGetClients } from "@/actions/clients/actions";
+import { useCreatePayment } from "@/actions/payment/actions";
 import { useCreateTransaction, useGetTransaction } from "@/actions/transactions/actions";
 import {
   Select,
@@ -43,11 +38,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Payment, Transaction, TransactionItemForm } from "@/types";
+import { AmountInput } from "../misc/AmountInput";
+import { Button } from '../ui/button';
 import { Calendar } from "../ui/calendar";
 import { Input } from '../ui/input';
-import { RegisterArticleDialog } from "../dialogs/RegisterArticleDialog";
-import { hasExternalOtelApiPackage } from "next/dist/build/webpack-config";
-import { useCreatePayment } from "@/actions/payment/actions";
 
 const formSchema = z.object({
   reference: z.string(),

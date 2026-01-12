@@ -1,6 +1,6 @@
 import { Category } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { toast } from "sonner";
 
 export const useGetCategory = (id: string | null) => {

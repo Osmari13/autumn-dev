@@ -1,22 +1,6 @@
-import { Provider, ProviderPayment } from "@/types";
+import { ProviderPayment } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { toast } from "sonner";
-
-// export const useGetProviderPayment = () => {
-//     const providersQuery = useQuery({
-//       queryKey: ["providers"],
-//       queryFn: async () => {
-//         const {data} = await axios.get('/api/providers'); // Adjust the endpoint as needed
-//         return data as Provider[];
-//       }
-//     });
-//     return {
-//       data: providersQuery.data,
-//       loading: providersQuery.isLoading,
-//       error: providersQuery.isError // Function to call the query
-//     };
-//   };
 
 export const useGetProviderPayment = (id: string | null) => {
   return useQuery({

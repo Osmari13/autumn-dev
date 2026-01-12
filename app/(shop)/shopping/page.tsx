@@ -1,11 +1,11 @@
 "use client"
 
-import Link from "next/link"
-import Image from "next/image"
-import { ArrowLeft, Minus, Plus, Trash2, ShoppingBag, MessageCircle, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Article } from "@/types"
+import { ArrowLeft, MessageCircle, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
 import { useCart } from "../cartContext"
 
 export default function CartPage() {
