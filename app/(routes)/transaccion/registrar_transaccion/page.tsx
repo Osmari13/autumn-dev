@@ -20,7 +20,7 @@ const TransactionPage = () => {
         </p>
       </div>
       <TransactionForm
-        onClose={() => router.push("/catalogo/transaccion")}
+        onClose={() => router.push("/transaccion")}
         isEditing={false}
       />
     </ContentLayout>

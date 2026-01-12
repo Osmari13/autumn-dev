@@ -1,5 +1,6 @@
 import {
   BookOpen,
+  DollarSign,
   FileUser,
   Handshake,
   LayoutGrid,
@@ -77,12 +78,19 @@ export function getMenuList(pathname: string, role: string): Group[] {
               label: "Articulos",
               active: pathname === "/catalogo/articulos"
             },
-            {
-              href: "/catalogo/transaccion",
-              label: "Transacciones",
-              active: pathname === "/catalogo/transaccion"
-            },
+            // {
+            //   href: "/catalogo/transaccion",
+            //   label: "Transacciones",
+            //   active: pathname === "/catalogo/transaccion"
+            // },
           ]
+        },
+        {
+            href: "/transaccion",
+            label: "Transacciones",
+            active: pathname.includes("/transaccion"),
+            icon: DollarSign,
+            submenus: []
         },
         // {
         //   href: "/articulo",

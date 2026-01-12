@@ -23,8 +23,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { ListRestart } from "lucide-react"
+import { Link, ListRestart, Plus } from "lucide-react"
 import { useState } from "react"
+import { RegisterArticleDialog } from "@/components/dialogs/RegisterArticleDialog"
+import TransactionForm from "@/components/forms/TransactionForm"
+import { useRouter } from "next/navigation"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -57,11 +60,24 @@ export function DataTable<TData, TValue>({
   })
 
   const isFiltered = table.getState().columnFilters.length > 0
+  const [open, setOpen] = useState(false)
+  const router = useRouter()
 
+  
   return (
     <div>
       <div className="flex items-center py-4">
         <div className="flex gap-x-2 items-center">
+
+             <Button
+                onClick={() => router.push("/catalogo/transaccion/registrar_transaccion")}
+                className="h-8"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Registrar transacción
+              </Button>
+
+          
           {isFiltered && (
             <Button
               variant="ghost"
