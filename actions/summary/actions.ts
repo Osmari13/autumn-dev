@@ -5,60 +5,103 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useSearchParams } from "next/navigation";
 
-export type BranchTransaction = {
-  branchId: string;
-  data: {
-    date: string;
-    amount: number;
-  }[];
+export type ProviderStats = {
+  providerId: string;
+  providerName: string;
+  totalPaid: number;
+  totalPayments: number;
+  lastPayment: Date | null;
+  mostUsedPaymentMethod: string | null;
+};
+
+export type IncomeStats = {
+  totalIncome: number;
+  totalTransactions: number;
+  from: Date | null;
+  to: Date | null;
+};
+
+export type PendingClient = {
+  clientId: string;
+  clientName: string;
+  pendingAmount: number;
+  transactionsCount: number;
+};
+
+export type ProfitStats = {
+  totalIncome: number
+  totalExpenses: number
+  netProfit: number
+}
+
+export type SummaryData = {
+  providerStats: ProviderStats[];
+  income: IncomeStats;
+  pendingClients: PendingClient[];
+  profit: ProfitStats; 
 };
 
 export const useGetSummary = () => {
-  // Get the search parameters from the URL
   const params = useSearchParams();
 
-  // Extract 'from' and 'to' query parameters, default to an empty string if not provided
   const from = params.get("from") || "";
   const to = params.get("to") || "";
 
-  // Set up the query with react-query's useQuery
-  const summaryQuery = useQuery({
-    // Unique query key, using 'from' and 'to' ensures the query refetches if the parameters change
-    queryKey: ["transactionsSummary", from, to],
-
-    // Function that performs the API request
+  const summaryQuery = useQuery<SummaryData>({
+    queryKey: ["dashboardSummary", from, to],
     queryFn: async () => {
-      // Make a GET request to the /api/summary endpoint with from and to parameters
       const { data } = await axios.get('/api/summary', {
-        params: {
-          from, // Send the 'from' date to the server
-          to,   // Send the 'to' date to the server
-        },
+        params: { from, to },
       });
 
-      // Convert the total_amount and transaction totals from miliunits to the desired format
+      // Adaptar y transformar la respuesta de la API al tipo SummaryData
+      const providerStats: ProviderStats[] = (data.providerStats || []).map(
+        (p: any) => ({
+          providerId: p.providerId,
+          providerName: p.providerName,
+          totalPaid: p.totalPaid,
+          totalPayments: p.totalPayments,
+          lastPayment: p.lastPayment ? new Date(p.lastPayment) : null,
+          mostUsedPaymentMethod: p.mostUsedPaymentMethod ?? null,
+        })
+      );
+
+      const income: IncomeStats = {
+        totalIncome: data.income?.totalIncome || 0,
+        totalTransactions: data.income?.totalTransactions || 0,
+        from: data.income?.from ? new Date(data.income.from) : null,
+        to: data.income?.to ? new Date(data.income.to) : null,
+      };
+
+      const pendingClients: PendingClient[] = (data.pendingClients || []).map(
+        (c: any) => ({
+          clientId: c.clientId,
+          clientName: c.clientName,
+          pendingAmount: c.pendingAmount,
+          transactionsCount: c.transactionsCount,
+        })
+      );
+
+      const profit: ProfitStats = {
+        totalIncome: data.profit?.totalIncome || 0,
+        totalExpenses: data.profit?.totalExpenses || 0,
+        netProfit: data.profit?.netProfit || 0,
+      };
+
       return {
-        ...data,
-        total_amount: convertAmountFromMiliunits(data.total_amount), // Convert total amount
-        transactionsByBranch: data.transactionsByBranch.map((branchData: BranchTransaction) => ({
-          ...branchData,
-          data: branchData.data.map((transaction) => ({
-            ...transaction,
-            amount: convertAmountFromMiliunits(transaction.amount) // Convert transaction total
-          }))
-        })),
+        providerStats,
+        income,
+        pendingClients,
+        profit,  // ← NUEVO
       };
     },
-
-    // Optional: retry in case of failure, and cache the result for 5 minutes (staleTime)
-    staleTime: 1000 * 60 * 5, // Cache data for 5 minutes
-    retry: 3, // Retry failed queries up to 3 times
+    staleTime: 1000 * 60 * 5,
+    retry: 3,
   });
 
-  // Return the query data, loading status, and error state
   return {
-    data: summaryQuery.data,      // The fetched data, including totals and ticket counts
-    loading: summaryQuery.isLoading, // Loading state
-    error: summaryQuery.isError ? summaryQuery.error : null, // Error handling
+    data: summaryQuery.data,
+    loading: summaryQuery.isLoading,
+    error: summaryQuery.isError ? summaryQuery.error : null,
   };
 };

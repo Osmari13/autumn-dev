@@ -26,7 +26,7 @@ export type Provider = {
   phone_number?:  string | null,
   registered_by?: string | null,
   updated_by?:    string | null,
-  providerPayments?: ProviderPayment[],     // Pagos realizados A este proveedor (gastos)
+  providerPayment?: ProviderPayment[],     // Pagos realizados A este proveedor (gastos)
   articles?: Article[], 
 }
 
@@ -118,3 +118,26 @@ export type Payment = {
   image?: string | null
   // una transacción con varios artículos
 }
+
+export type ApiSummaryResponse = {
+  providerStats: {
+    providerId: string;
+    providerName: string;
+    totalPaid: number;
+    totalPayments: number;
+    lastPayment: string | null;
+    mostUsedPaymentMethod: string | null;
+  }[];
+  income: {
+    totalIncome: number;
+    totalTransactions: number;
+    from: string | null;
+    to: string | null;
+  };
+  pendingClients: {
+    clientId: string;
+    clientName: string;
+    pendingAmount: number;
+    transactionsCount: number;
+  }[];
+};

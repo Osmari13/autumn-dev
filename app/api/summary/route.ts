@@ -1,189 +1,171 @@
+// app/api/summary/route.ts
 import { NextResponse } from "next/server";
-import { parse, subDays, eachDayOfInterval, format } from "date-fns";
 import db from "@/lib/db";
+import { startOfDay, endOfDay } from "date-fns";
 
-export const dynamic = 'force-dynamic';
-
-
-// Helper function to generate an array of dates
-const generateDateRange = (start: Date, end: Date): string[] => {
-  return eachDayOfInterval({ start, end }).map(date => format(date, "yyyy-MM-dd"));
-};
-
-// Define TypeScript types for the response
-interface TransactionByBranch {
-  date: string;
-  amount: number;
-}
-
-interface BranchTransactions {
-  branchId: string;
-  branchName: string; // Added branchName
-  data: TransactionByBranch[];
-}
-
-interface BranchData {
-  name: string;
-  amount: number;
-}
-
-interface SummaryResponse {
-  total_amount: number;
-  transactionsByBranch: BranchTransactions[];
-  ticketCount: number
-  branches: BranchData[],
-  pendingCount: number,
-}
-
-// Define your GET method handler
 export async function GET(request: Request) {
   try {
-    // Extract query parameters from the URL
     const { searchParams } = new URL(request.url);
-    const from = searchParams.get("from") || undefined;
-    const to = searchParams.get("to") || undefined;
+    const fromParam = searchParams.get("from");
+    const toParam = searchParams.get("to");
 
-    // Set default date range (last 30 days if not provided)
-    const defaultTo = new Date();
-    const defaultFrom = subDays(defaultTo, 30);
+    const from = fromParam ? startOfDay(new Date(fromParam)) : undefined;
+    const to = toParam ? endOfDay(new Date(toParam)) : undefined;
 
-    const startDate = from ? parse(from, "yyyy-MM-dd", new Date()) : defaultFrom;
-    const endDate = to ? parse(to, "yyyy-MM-dd", new Date()) : defaultTo;
+    const dateFilter = from && to
+      ? { gte: from, lte: to }
+      : from
+      ? { gte: from }
+      : to
+      ? { lte: to }
+      : undefined;
 
-    // Fetch all transactions within the date range
-    const transactions = await db.transaction.findMany({
+    // 1) GASTOS POR PROVEEDOR (ProviderPayment)
+    const providerPayments = await db.providerPayment.findMany({
       where: {
-        transaction_date: {
-          gte: startDate,
-          lte: endDate,
-        },
+        ...(dateFilter && { paidAt: dateFilter }),
       },
-      select: {
-        transaction_date: true,
-        total: true,
-        ticketId: true, // Include ticketId to link transactions to branches
-      },
-    });
-
-
-    // Fetch related tickets to get the branchId and branchName
-    const tickets = await db.ticket.findMany({
-      where: {
-        id: { in: transactions.map(t => t.ticketId) }
-      },
-      select: {
-        id: true,
-        branchId: true,
-        branch: {
-          select: {
-            location_name: true // Select the branch name
-          }
-        }
-      }
-    });
-
-    // Count the number of tickets
-    const ticketCount = await db.ticket.count({
-      where: {
-        createdAt: {
-          gte: startDate,
-          lte: endDate,
-        },
+      include: {
+        provider: true,
       },
     });
 
-    const pendingCount = await db.ticket.count({
-      where: {
-        status: "PENDIENTE"
+    const providerStatsMap = new Map<
+      string,
+      {
+        providerId: string;
+        providerName: string;
+        totalPaid: number;
+        totalPayments: number;
+        lastPayment: Date | null;
+        methodsCount: Record<string, number>;
       }
-    })
+    >();
 
-    // Step 1: Generate the full date range
-    const dateRange = generateDateRange(startDate, endDate);
+    for (const payment of providerPayments) {
+      const providerId = payment.providerId;
+      const key = providerId;
 
-    // Step 2: Initialize an object to store transactions grouped by branch and date
-    const branchTransactions: { [key: string]: { branchName: string, transactions: TransactionByBranch[] } } = {};
-
-    // Step 3: Process transactions to calculate total amounts per branch and date
-    transactions.forEach(transaction => {
-      const ticket = tickets.find(t => t.id === transaction.ticketId); // Find the corresponding ticket to get the branchId
-      const branchId = ticket ? ticket.branchId : 'unknown'; // Get the branch ID from the ticket
-      const branchName = ticket?.branch?.location_name || 'Unknown Branch'; // Get the branch name
-
-      const formattedDate = format(transaction.transaction_date, "yyyy-MM-dd");
-
-      if (!branchTransactions[branchId]) {
-        branchTransactions[branchId] = { branchName, transactions: [] };
-      }
-
-      const existingTransaction = branchTransactions[branchId].transactions.find(item => item.date === formattedDate);
-      if (existingTransaction) {
-        existingTransaction.amount += transaction.total || 0; // Add to existing amount
-      } else {
-        branchTransactions[branchId].transactions.push({
-          date: formattedDate,
-          amount: transaction.total || 0, // Use transaction total or 0
+      if (!providerStatsMap.has(key)) {
+        providerStatsMap.set(key, {
+          providerId,
+          providerName:
+            payment.provider.name ||
+            `${payment.provider.first_name ?? ""} ${payment.provider.last_name ?? ""}`.trim(),
+          totalPaid: 0,
+          totalPayments: 0,
+          lastPayment: null,
+          methodsCount: {},
         });
       }
-    });
 
-    // Step 4: Fill in missing dates for each branch
-    const filledData: BranchTransactions[] = Object.keys(branchTransactions).map(branchId => {
-      const { branchName, transactions } = branchTransactions[branchId];
+      const stats = providerStatsMap.get(key)!;
+      stats.totalPaid += payment.amount;
+      stats.totalPayments += 1;
+      stats.lastPayment =
+        !stats.lastPayment || payment.paidAt > stats.lastPayment
+          ? payment.paidAt
+          : stats.lastPayment;
 
-      const filledBranchData = dateRange.map(date => {
-        const transaction = transactions.find(item => item.date === date);
-        return {
-          date,
-          amount: transaction ? transaction.amount : 0, // Use transaction total or 0
-        };
-      });
+      const method = payment.payMethod || "DESCONOCIDO";
+      stats.methodsCount[method] = (stats.methodsCount[method] || 0) + 1;
+    }
+
+    const providerStats = Array.from(providerStatsMap.values()).map((s) => {
+      const mostUsedMethod =
+        Object.entries(s.methodsCount).sort((a, b) => b[1] - a[1])[0]?.[0] ??
+        null;
 
       return {
-        branchId,
-        branchName, // Include branchName in the response
-        data: filledBranchData,
+        providerId: s.providerId,
+        providerName: s.providerName,
+        totalPaid: s.totalPaid,
+        totalPayments: s.totalPayments,
+        lastPayment: s.lastPayment,
+        mostUsedPaymentMethod: mostUsedMethod,
       };
     });
 
-    // Aggregate total amount across all transactions
-    const totalAmount = transactions.reduce((sum, t) => sum + (t.total || 0), 0);
-
-
-
-    const branchData: { [key: string]: number } = {};
-    transactions.forEach(transaction => {
-      const ticket = tickets.find(t => t.id === transaction.ticketId);
-      const branch = ticket ? ticket.branch.location_name : 'unknown';
-
-      if (!branchData[branch]) {
-        branchData[branch] = 0;
-      }
-      branchData[branch] += transaction.total || 0; // Accumulate amounts per branch
+    // 2) GANANCIAS (ingresos por ventas / pagos de clientes)
+    // Supongamos que Payment está ligado a Transaction y esta a Client
+    const payments = await db.payment.findMany({
+      where: {
+        ...(dateFilter && { paidAt: dateFilter }),
+      },
+      include: {
+        transaction: {
+          include: {
+            client: true,
+          },
+        },
+      },
     });
 
-    // Format data for the Pie chart
-    const branches: BranchData[] = Object.keys(branchData).map(branch => ({
-      name: branch,
-      amount: branchData[branch],
-    }));
+    const totalIncome = payments.reduce((sum, p) => sum + p.amount, 0);
+    const totalTransactions = new Set(
+      payments.map((p) => p.transactionId)
+    ).size;
 
-    // Return the JSON response
-    const response: SummaryResponse = {
-      total_amount: totalAmount, // Total transaction amount
-      transactionsByBranch: filledData, // Data for each branch
-      ticketCount, // Number of tickets in the date range
-      branches,
-      pendingCount
+    const income = {
+      totalIncome,
+      totalTransactions,
+      from: from ?? null,
+      to: to ?? null,
     };
 
-    return NextResponse.json(response, { status: 200 });
-  } catch (error) {
-    console.error("Error fetching transaction summary:", error);
+    // 3) CLIENTES PENDIENTES POR PAGAR
+    const clients = await db.client.findMany({
+      include: {
+        transaction: {
+          include: {
+            payments: true,
+          },
+        },
+      },
+    });
+
+    const pendingClients = clients
+      .map((client) => {
+        const pendingAmount =
+          client.transaction?.reduce((clientDebt, t) => {
+            const paymentsSum =
+              t.payments?.reduce((sum, p) => sum + p.amount, 0) ?? 0;
+            const transactionDebt =
+              t.status === "PENDIENTE" ? t.total - paymentsSum : 0;
+            return clientDebt + Math.max(0, transactionDebt);
+          }, 0) ?? 0;
+
+        const pendingTransactionsCount =
+          client.transaction?.filter((t) => t.status === "PENDIENTE")
+            .length ?? 0;
+
+        return {
+          clientId: client.id,
+          clientName: `${client.first_name} ${client.last_name}`.trim(),
+          pendingAmount,
+          transactionsCount: pendingTransactionsCount,
+        };
+      })
+      .filter((c) => c.pendingAmount > 0);
+
     return NextResponse.json(
       {
-        message: "Error fetching transaction summary.",
+        providerStats,
+        income,
+        pendingClients,
+        profit: {
+          totalIncome,           // Total ingresos (ya calculado)
+          totalExpenses: providerStats.reduce((sum, p) => sum + p.totalPaid, 0),
+          netProfit: totalIncome - providerStats.reduce((sum, p) => sum + p.totalPaid, 0),
+        },
+
       },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error in /api/summary:", error);
+    return NextResponse.json(
+      { error: "Error al obtener el resumen" },
       { status: 500 }
     );
   }

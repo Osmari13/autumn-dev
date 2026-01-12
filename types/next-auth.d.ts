@@ -7,7 +7,6 @@ declare module "next-auth" {
     user: {
       id: string;
       username: string;
-      branchId: string;
       user_role: string;
     };
   }
@@ -16,7 +15,6 @@ declare module "next-auth" {
 // Extend the default JWT object
 declare module "next-auth/jwt" {
   interface JWT {
-    branchId: string;
     user_role: string;
   }
 }

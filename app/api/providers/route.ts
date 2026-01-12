@@ -3,7 +3,11 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
     try {
-      const data = await db.provider.findMany()
+      const data = await db.provider.findMany({
+        include:{
+         providerPayment: true
+        }
+      });
       return NextResponse.json(data,{
         status:200
       })

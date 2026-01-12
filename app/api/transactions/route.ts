@@ -77,7 +77,6 @@ export async function GET() {
           select: {
             first_name: true,
             last_name: true,
-            debt: true,
           },
         },
         payments: true,

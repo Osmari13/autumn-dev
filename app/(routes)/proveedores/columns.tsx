@@ -54,7 +54,15 @@ export const columns: ColumnDef<Provider>[] = [
     cell: ({ row }) => {
         return <div className="text-center font-bold">{row.original.name}</div>
       },
-  },  
+  },{
+    accessorKey:"providerPayment",
+    header: ({column}) => (
+        <DataTableColumnHeader filter column={column} title='Pagos' />
+    ),
+    cell: ({ row }) => {
+        return <div className="text-center font-bold">${row.original.providerPayment?.reduce((acc, payment) => acc + payment.amount, 0) || 0}</div>
+      },
+  },    
   {
     id: "actions",
     cell: ({ row }) => {
