@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Leaf, ShoppingBag, ChevronRight, Loader2, AlertCircle } from "lucide-react"
+import { Leaf, ShoppingBag, ChevronRight, Loader2, AlertCircle, MapPin, Mail, Phone } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -206,7 +206,7 @@ export default function ProductsPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-12 autumn-gradient-1 text-primary-foreground">
+      <section id="contacto" className="py-12 autumn-gradient-1 text-primary-foreground">
         <div className="px-4 md:px-8 lg:px-12 max-w-7xl mx-auto text-center space-y-4">
           <h2 className="text-3xl font-bold">¿No encontraste lo que buscas?</h2>
           <p className="max-w-2xl mx-auto opacity-90">
@@ -217,78 +217,75 @@ export default function ProductsPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 autumn-gradient-1 text-primary-foreground">
+       <footer className="py-12 autumn-gradient-1">
         <div className="px-4 md:px-8 lg:px-12 max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Leaf className="h-6 w-6" />
-                <span className="text-xl font-bold tracking-wider">AUTUMN</span>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-primary-foreground">
+            {/* Logo y descripción */}
+            <div className="space-y-4 col-span-1 md:col-span-2">
+              <div className="flex items-center gap-2 mb-4">
+                <Leaf className="h-8 w-8" />
+                <span className="text-2xl font-bold tracking-wider text-primary-foreground">AUTUMN</span>
               </div>
-              <p className="text-sm opacity-80">
+              <p className="text-primary-foreground/90 leading-relaxed">
                 Accesorios inspirados en los cálidos colores y la atmósfera acogedora del otoño.
               </p>
             </div>
 
+            {/* Enlaces rápidos */}
             <div>
-              <h4 className="font-medium mb-4">Enlaces rápidos</h4>
-              <ul className="space-y-2 opacity-80">
+              <h4 className="font-semibold text-lg mb-4 text-primary-foreground">Enlaces rápidos</h4>
+              <ul className="space-y-2">
                 <li>
-                  <Link href="/" className="hover:opacity-100 transition-opacity">
+                  <Link href="#" className="text-primary-foreground/90 hover:text-primary hover:underline transition-all block py-1">
                     Inicio
                   </Link>
                 </li>
                 <li>
-                  <Link href="/products" className="hover:opacity-100 transition-opacity">
+                  <Link href="#productos" className="text-primary-foreground/90 hover:text-primary hover:underline transition-all block py-1">
                     Productos
                   </Link>
                 </li>
                 <li>
-                  <Link href="/#nosotros" className="hover:opacity-100 transition-opacity">
+                  <Link href="#nosotros" className="text-primary-foreground/90 hover:text-primary hover:underline transition-all block py-1">
                     Nosotros
                   </Link>
                 </li>
                 <li>
-                  <Link href="/#contacto" className="hover:opacity-100 transition-opacity">
+                  <Link href="#contacto" className="text-primary-foreground/90 hover:text-primary hover:underline transition-all block py-1">
                     Contacto
                   </Link>
                 </li>
               </ul>
             </div>
 
+            {/* Contacto */}
             <div>
-              <h4 className="font-medium mb-4">Ayuda</h4>
-              <ul className="space-y-2 opacity-80">
-                <li>
-                  <Link href="#" className="hover:opacity-100 transition-opacity">
-                    Envíos
-                  </Link>
+              <h4 className="font-semibold text-lg mb-4 text-primary-foreground">Contacto</h4>
+              <ul className="space-y-2 text-primary-foreground/90">
+                <li className="flex items-center gap-2 py-1">
+                  <MapPin className="h-4 w-4" />
+                  Ciudad Guayana
                 </li>
-                <li>
-                  <Link href="#" className="hover:opacity-100 transition-opacity">
-                    Devoluciones
-                  </Link>
+                <li className="py-1">
+                  <Mail className="h-4 w-4 inline-block mr-2" />
+                  <a href="https://linktr.ee/autumn.pzo" target="_blank" rel="noopener noreferrer" 
+                    className="text-primary-foreground/90 hover:text-primary hover:underline transition-all">
+                    autumn.pzo
+                  </a>
                 </li>
-                <li>
-                  <Link href="#" className="hover:opacity-100 transition-opacity">
-                    FAQ
-                  </Link>
+                <li className="flex items-center gap-2 py-1">
+                  <Phone className="h-4 w-4" />
+                  +58 0414-8738350
                 </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-medium mb-4">Contacto</h4>
-              <ul className="space-y-2 opacity-80">
-                <li>Calle Otoño 123, Ciudad</li>
-                <li>info@autumn-accesorios.com</li>
-                <li>+123 456 7890</li>
               </ul>
             </div>
           </div>
 
-          <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center opacity-80 text-sm">
-            <p>&copy; {new Date().getFullYear()} AUTUMN. Todos los derechos reservados.</p>
+          {/* Copyright centrado */}
+          <div className="border-t border-primary-foreground/30 mt-12 pt-8 text-center">
+            <p className="text-primary-foreground/80 text-sm">
+              &copy; {new Date().getFullYear()} AUTUMN. Todos los derechos reservados.
+            </p>
           </div>
         </div>
       </footer>

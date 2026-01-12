@@ -3,7 +3,7 @@ import { useGetArticles } from "@/actions/articles/actions";
 import Header from "@/components/sidebar/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge, Coffee, Leaf, Mail, ShoppingBag, Sun, Wind } from "lucide-react";
+import { Badge, Coffee, Leaf, Mail, MapPin, Phone, ShoppingBag, Sun, Wind } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { FaFacebook, FaInstagram } from "react-icons/fa";
@@ -21,7 +21,7 @@ export default function Home() {
         <div className="container grid gap-8 md:grid-cols-2 items-center">
           <div className="space-y-8">
             <i className="bg-chart-1/20 text-chart-1 hover:bg-chart-1/30 px-3 py-1">
-              Nueva Colección Otoño 2025
+              Nueva Colección Otoño {new Date().getFullYear()}
             </i>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground">
               Accesorios que capturan la esencia del <span className="text-primary">otoño</span>
@@ -96,7 +96,7 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {
-              articles?.map((product, index) => (
+              articles?.filter(product => product.quantity > 0).slice(0, 5).map((product, index) => (
               <Card
                 key={index}
                 className="overflow-hidden border-border/50 hover:border-primary/50 transition-colors group"
@@ -168,159 +168,112 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-16 bg-primary text-primary-foreground relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <path d="M0,0 L100,0 L100,100 L0,100 Z" fill="none" stroke="currentColor" strokeWidth="0.5"></path>
-            <path d="M0,0 L100,100 M100,0 L0,100" fill="none" stroke="currentColor" strokeWidth="0.5"></path>
-          </svg>
-        </div>
-        <div className="container relative z-10">
-          <div className="max-w-2xl mx-auto text-center space-y-6">
+
+      <section id="contacto" className="py-12 autumn-gradient-1 text-primary-foreground">
+        <div className="px-4 md:px-8 lg:px-12 max-w-7xl mx-auto text-center space-y-4">
+          
             <div className="w-16 h-16 mx-auto rounded-full bg-white/10 flex items-center justify-center mb-6">
               <Sun className="h-8 w-8" />
             </div>
-            <h2 className="text-3xl font-bold">Únete a nuestra comunidad</h2>
-            <p>
-              Suscríbete para recibir noticias sobre nuevos productos, ofertas especiales y consejos de estilo para la
-              temporada.
-            </p>
-            <form className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Tu correo electrónico"
-                className="px-4 py-2 rounded-md flex-1 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                required
-              />
-              <Button className="bg-chart-5 hover:bg-chart-5/90 text-white">Suscribirse</Button>
-            </form>
-            <p className="text-sm opacity-80">
-              Al suscribirte, aceptas recibir correos electrónicos de marketing de AUTUMN.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section id="contacto" className="py-16 bg-background px-32">
-        <div className="container">
-          <div className="text-center mb-12">
+            <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground">Contáctanos</h2>
-            <p className="text-muted-foreground mt-2">Estamos aquí para ayudarte con cualquier pregunta o inquietud.</p>
+            <p className="text-foreground mt-2">Estamos aquí para ayudarte con cualquier pregunta o inquietud.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* <Card className="border-border/50 hover:border-primary/50 transition-colors">
-              <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
-                <div className="h-12 w-12 rounded-full bg-chart-1/10 flex items-center justify-center">
-                  <MapPin className="h-6 w-6 text-chart-1" />
-                </div>
-                <h3 className="font-medium text-foreground">Visítanos</h3>
-                <p className="text-muted-foreground">Calle Otoño 123, Ciudad</p>
-              </CardContent>
-            </Card> */}
-
-            <Card className="border-border/50 hover:border-primary/50 transition-colors">
-              <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
-                <div className="h-12 w-12 rounded-full bg-chart-4/10 flex items-center justify-center">
-                  <Mail className="h-6 w-6 text-chart-4" />
-                </div>
-                <h3 className="font-medium text-foreground">Escríbenos</h3>
-                <p className="text-muted-foreground">info@autumn-accesorios.com</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border/50 hover:border-primary/50 transition-colors">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-center max-w-3xl mx-auto">
+            <Card className="border-border/50 hover:border-primary/50 transition-colors md:col-span-2">
               <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
                 <div className="h-12 w-12 rounded-full bg-chart-5/10 flex items-center justify-center">
                   <div className="flex gap-2">
                     <FaInstagram className="h-5 w-5 text-chart-5" />
-                    <FaFacebook className="h-5 w-5 text-chart-5" />
                   </div>
                 </div>
                 <h3 className="font-medium text-foreground">Síguenos</h3>
-                <p className="text-muted-foreground">@autumn.pzo</p>
+                <p className="text-muted-foreground"><a href="https://www.instagram.com/autumn.pzo/#" target="_blank" rel="noopener noreferrer" 
+                    className="hover:text-primary hover:underline transition-all">
+                    @autumn.pzo
+                  </a></p>
               </CardContent>
             </Card>
           </div>
         </div>
       </section>
 
+
       {/* Footer */}
-      <footer className="py-8 autumn-gradient-1 text-primary-foreground px-32">
-        <div className="container">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Leaf className="h-6 w-6" />
-                <span className="text-xl font-bold tracking-wider">AUTUMN</span>
+      <footer className="py-12 autumn-gradient-1">
+        <div className="px-4 md:px-8 lg:px-12 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-primary-foreground">
+            {/* Logo y descripción */}
+            <div className="space-y-4 col-span-1 md:col-span-2">
+              <div className="flex items-center gap-2 mb-4">
+                <Leaf className="h-8 w-8" />
+                <span className="text-2xl font-bold tracking-wider text-primary-foreground">AUTUMN</span>
               </div>
-              <p className="text-sm opacity-80">
+              <p className="text-primary-foreground/90 leading-relaxed">
                 Accesorios inspirados en los cálidos colores y la atmósfera acogedora del otoño.
               </p>
             </div>
 
+            {/* Enlaces rápidos */}
             <div>
-              <h4 className="font-medium mb-4">Enlaces rápidos</h4>
-              <ul className="space-y-2 opacity-80">
+              <h4 className="font-semibold text-lg mb-4 text-primary-foreground">Enlaces rápidos</h4>
+              <ul className="space-y-2">
                 <li>
-                  <Link href="#" className="hover:opacity-100 transition-opacity">
+                  <Link href="#" className="text-primary-foreground/90 hover:text-primary hover:underline transition-all block py-1">
                     Inicio
                   </Link>
                 </li>
                 <li>
-                  <Link href="#productos" className="hover:opacity-100 transition-opacity">
+                  <Link href="#productos" className="text-primary-foreground/90 hover:text-primary hover:underline transition-all block py-1">
                     Productos
                   </Link>
                 </li>
                 <li>
-                  <Link href="#nosotros" className="hover:opacity-100 transition-opacity">
+                  <Link href="#nosotros" className="text-primary-foreground/90 hover:text-primary hover:underline transition-all block py-1">
                     Nosotros
                   </Link>
                 </li>
                 <li>
-                  <Link href="#contacto" className="hover:opacity-100 transition-opacity">
+                  <Link href="#contacto" className="text-primary-foreground/90 hover:text-primary hover:underline transition-all block py-1">
                     Contacto
                   </Link>
                 </li>
               </ul>
             </div>
 
+            {/* Contacto */}
             <div>
-              <h4 className="font-medium mb-4">Ayuda</h4>
-              <ul className="space-y-2 opacity-80">
-                <li>
-                  <Link href="#" className="hover:opacity-100 transition-opacity">
-                    Envíos
-                  </Link>
+              <h4 className="font-semibold text-lg mb-4 text-primary-foreground">Contacto</h4>
+              <ul className="space-y-2 text-primary-foreground/90">
+                <li className="flex items-center gap-2 py-1">
+                  <MapPin className="h-4 w-4" />
+                  Ciudad Guayana
                 </li>
-                <li>
-                  <Link href="#" className="hover:opacity-100 transition-opacity">
-                    Devoluciones
-                  </Link>
+                <li className="py-1">
+                  <Mail className="h-4 w-4 inline-block mr-2" />
+                  <a href="https://linktr.ee/autumn.pzo" target="_blank" rel="noopener noreferrer" 
+                    className="text-primary-foreground/90 hover:text-primary hover:underline transition-all">
+                    autumn.pzo
+                  </a>
                 </li>
-                <li>
-                  <Link href="#" className="hover:opacity-100 transition-opacity">
-                    FAQ
-                  </Link>
+                <li className="flex items-center gap-2 py-1">
+                  <Phone className="h-4 w-4" />
+                  +58 0414-8738350
                 </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-medium mb-4">Contacto</h4>
-              <ul className="space-y-2 opacity-80">
-                <li>Ciudad Guayana</li>
-                <li>info@autumn-accesorios.com</li>
-                <li>+58 0414-8738350</li>
               </ul>
             </div>
           </div>
 
-          <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center opacity-80 text-sm">
-            <p>&copy; {new Date().getFullYear()} AUTUMN. Todos los derechos reservados.</p>
+          {/* Copyright centrado */}
+          <div className="border-t border-primary-foreground/30 mt-12 pt-8 text-center">
+            <p className="text-primary-foreground/80 text-sm">
+              &copy; {new Date().getFullYear()} AUTUMN. Todos los derechos reservados.
+            </p>
           </div>
         </div>
       </footer>
+
     </div>
   );
 }

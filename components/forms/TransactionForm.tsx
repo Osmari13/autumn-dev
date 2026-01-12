@@ -27,7 +27,7 @@ import { toast } from "sonner";
 import { z } from 'zod';
 import { CreateClientDialog } from "../dialogs/CreateClientDialog";
 
-import { useGetArticles } from "@/actions/articles/actions";
+import { useGetArticles, useUpdateArticle } from "@/actions/articles/actions";
 import { useGetClients } from "@/actions/clients/actions";
 import { useCreatePayment } from "@/actions/payment/actions";
 import { useCreateTransaction, useGetTransaction } from "@/actions/transactions/actions";
@@ -110,6 +110,7 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
 
   const { createTransaction } = useCreateTransaction();
   const { createPayment } = useCreatePayment();
+  const { updateArticle } = useUpdateArticle();
 
   const onResetTransactionForm = () => {
     form.reset()
@@ -206,6 +207,21 @@ const updateTotals = () => {
           registered_by,
           paidAt: values.paidAt || new Date()
         });
+
+        // Actualizar inventario de artículos
+        await Promise.all(items.map( async (item) => {
+          const article = articles?.find(a => a.id === item.articleId);
+          if (article) {
+            const newQuantity = article.quantity - item.quantity;
+            await updateArticle.mutateAsync({
+              id: item.articleId,
+              quantity: newQuantity,
+              updated_by: registered_by
+            });
+          }
+        }));
+
+        
       }
     
       onClose();

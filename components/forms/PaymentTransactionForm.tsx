@@ -32,6 +32,7 @@ import { Payment, Transaction } from "@/types";
 import { Button } from '../ui/button';
 import { Calendar } from "../ui/calendar";
 import { Input } from '../ui/input';
+import { useUpdateArticle } from "@/actions/articles/actions";
 
 const formSchema = z.object({
 
@@ -55,6 +56,7 @@ const PaymentTransactionForm = ({ payments , transaction, onClose}: FormProps) =
   const [openPaidAt, setOpenPaidAt] = useState(false)
   const { updateStatusTransaction } = useUpdateStatusTransaction();
   const { createPayment } = useCreatePayment();
+  const { updateArticle } = useUpdateArticle();
   // const [payments, setPayments] = useState<Payment[]>([]); // pagos nuevos del formulario
   
   
@@ -145,6 +147,16 @@ const PaymentTransactionForm = ({ payments , transaction, onClose}: FormProps) =
           status: status,
           updated_by: registered_by
         });
+
+        await Promise.all(transaction.items.map( async (item) => {
+          // Actualizar el inventario del artículo
+          const newQuantity = item.article.quantity - item.quantity;
+          await updateArticle.mutateAsync({
+            id: item.articleId,
+            quantity: newQuantity,
+            updated_by: registered_by
+          });
+        }));
 
         toast.success("Pago registrado correctamente");
         onClose(); //

@@ -111,21 +111,8 @@ export const useDeleteArticle = () => {
     const queryClient = useQueryClient();
 
     const updateMutation = useMutation({
-      mutationFn: async (values: {
-        id: string;               // ID of the branch to be updated
-        name: string;               // ID of the branch to be updated
-        description :string | null
-        serial :string 
-        quantity: number
-        priceUnit: number
-        price :number
-        image: string | null
-        tag:  string | null
-        providerId :string
-        categoryId :string 
-        updated_by :string | null
-      }) => {
-        await await axios.patch(`/api/articles/${values.id}`, {
+      mutationFn: async (values: Partial<Article> & { id: string }) => {
+        await axios.patch(`/api/articles/${values.id}`, {
             ...values
 
         });
