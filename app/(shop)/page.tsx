@@ -6,53 +6,16 @@ import {  Badge, BadgeAlert, Coffee, Leaf, Mail, MapPin, ShoppingBag, Sun, Wind 
 import Image from "next/image";
 import Link from "next/link";
 import { FaFacebook, FaInstagram } from "react-icons/fa";
+import { useCart } from "./cartContext";
+import Header from "@/components/sidebar/Header";
 
 export default function Home() {
   const { data: articles, loading, error } = useGetArticles()
+  const { addToCart } = useCart()
   return (
     <div className="flex min-h-screen flex-col">
-      {/* grid h-dvh w-dvw place-content-center bg-orange-200 */}
-      {/* <div className="flex flex-col items-center space-y-3">
-        <Image src={'/loguito_blanco-removebg.png'} width={250} height={250} alt="Logo Principal" className="rounded-[100px]"/>
-        <h1 className="text-center text-4xl font-extrabold text-primary/85">AUTUMN.PZO</h1>
-        <Button variant={"ghost"} className="hover:bg-red-500 hover:text-white text-black">
-          <Link href={"/login"}>Iniciar Sesión</Link>
-        </Button>
-      </div> */}
 
-      <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-sm px-8">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Leaf className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold tracking-wider text-foreground">AUTUMN</span>
-          </div>
-          <nav className="hidden md:flex gap-6">
-            <Link href="#" className="text-foreground hover:text-primary transition-colors">
-              Inicio
-            </Link>
-            <Link href="#productos" className="text-foreground hover:text-primary transition-colors">
-              Productos
-            </Link>
-            <Link href="#nosotros" className="text-foreground hover:text-primary transition-colors">
-              Nosotros
-            </Link>
-            <Link href="#contacto" className="text-foreground hover:text-primary transition-colors">
-              Contacto
-            </Link>
-          </nav>
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="text-foreground hover:text-primary hover:bg-muted">
-              <ShoppingBag className="h-5 w-5" />
-              <span className="sr-only">Carrito</span>
-            </Button>
-            <Button className="hidden md:flex">Comprar ahora</Button>
-            <Button className="hidden md:flex">
-              <Link href={"/login"}>Iniciar Sesión</Link>
-            </Button>
-          </div>
-        </div>
-      </header>
-      
+      <Header/>
       <section className="relative py-20 md:py-32 overflow-hidden leaf-pattern px-20">
         <div className="absolute inset-0 -z-10 bg-gradient-to-b from-muted to-background/50 opacity-90"></div>
         <div className="container grid gap-8 md:grid-cols-2 items-center">
@@ -156,10 +119,14 @@ export default function Home() {
                       <h3 className="font-medium text-foreground">{product.name}</h3>
                       <p className="text-muted-foreground">${product.price}</p>
                     </div>
-                    <Button size="sm" className="bg-chart-5 hover:bg-chart-5/90 text-white">
+                    <Button
+                      size="sm"
+                      onClick={() => addToCart(product)}
+                    >
                       <ShoppingBag className="h-4 w-4 mr-2" />
                       Añadir
                     </Button>
+
                   </div>
                 </CardContent>
               </Card>
@@ -167,7 +134,7 @@ export default function Home() {
           </div>
 
           <div className="flex justify-center mt-8">
-            <Button>Ver todos los productos</Button>
+            <Button onClick={() => window.location.href = '/products'}>Ver todos los productos</Button>
           </div>
         </div>
       </section>
