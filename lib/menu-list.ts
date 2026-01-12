@@ -76,11 +76,6 @@ export function getMenuList(pathname: string, role: string): Group[] {
               label: "Articulos",
               active: pathname === "/catalogo/articulos"
             },
-            // {
-            //   href: "/catalogo/transaccion",
-            //   label: "Transacciones",
-            //   active: pathname === "/catalogo/transaccion"
-            // },
           ]
         },
         {
@@ -90,30 +85,6 @@ export function getMenuList(pathname: string, role: string): Group[] {
             icon: DollarSign,
             submenus: []
         },
-        // {
-        //   href: "/articulo",
-        //   label: "Articulo",
-        //   active: pathname.includes("/articulo"),
-        //   icon: Store,
-        //   submenus: [
-        //     {
-        //       href: "/articulo/registro_categoria",
-        //       label: "Registro de categoria",
-        //       active: pathname === "/articulo/registro_categoria"
-        //     },
-        //     {
-        //       href: "/articulo/registro_articulo",
-        //       label: "Registro de Articulos",
-        //       active: pathname === "/articulo/registro_articulo"
-        //     },
-        //     {
-        //       href: "/articulo/transaccion",
-        //       label: "Transaccion del Articulo",
-        //       active: pathname === "/articulo/transaccion"
-        //     }
-          
-        //   ]
-        // }
         
       ]
     },
