@@ -1,10 +1,9 @@
 "use client"
 
-import BranchDropdownActions from "@/components/dropdowns/BranchDropdownActions"
 import UserDropdownActions from "@/components/dropdowns/UsersDropdownActions"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Branch, User } from "@/types"
+import { User } from "@/types"
 import { ColumnDef } from "@tanstack/react-table"
 
 // This type is used to define the shape of our data.
