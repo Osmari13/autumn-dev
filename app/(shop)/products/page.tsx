@@ -11,12 +11,13 @@ import { Badge } from "@/components/ui/badge"
 import { useGetArticles } from "@/actions/articles/actions"
 import { useCart } from "../cartContext"
 import Header from "@/components/sidebar/Header"
+import { FooterShop } from "@/components/sidebar/FooterShop"
 
 export default function ProductsPage() {
   const { data: articles, loading, error } = useGetArticles()
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const { addToCart } = useCart()
-
+  const { items } = useCart();
 
   const categories = useMemo(() => {
     const cats = new Set<string>()
@@ -35,6 +36,27 @@ export default function ProductsPage() {
       (article) => article.category.name === selectedCategory
     )
   }, [selectedCategory, articles])
+
+  const handleContactWhatsApp = () => {
+    const phoneNumber = "584148738350"; // ⚠️ cambia por tu número con código país
+
+    let message = "Hola, quiero información sobre los siguientes productos:\n\n";
+
+    items.forEach((item) => {
+      message += `🛒 ${item.name} (${item.quantity}) - $${item.price}\n`;
+    });
+
+    const total = items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+
+    message += `\nTotal: $${total}`;
+
+    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+
+    window.open(url, "_blank");
+  };
 
   return (
      <div className="flex min-h-screen flex-col">
@@ -108,12 +130,17 @@ export default function ProductsPage() {
 
                 {/* Info Box */}
                 <div className="p-4 rounded-lg bg-chart-4/10 border border-chart-4/20">
-                  <h4 className="font-medium text-foreground mb-2">¿Necesitas ayuda?</h4>
+                  <h4 className="font-medium text-black mb-2">¿Necesitas ayuda?</h4>
                   <p className="text-sm text-muted-foreground mb-3">
                     Nuestro equipo está aquí para ayudarte a encontrar el accesorio perfecto.
                   </p>
-                  <Button size="sm" variant="outline" className="w-full bg-transparent">
-                    Contactar soporte
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full bg-transparent text-black"
+                    onClick={handleContactWhatsApp}
+                  >
+                    Contactar con la Vendedora
                   </Button>
                 </div>
               </div>
@@ -142,7 +169,7 @@ export default function ProductsPage() {
                 <>
                   <div className="flex items-center justify-between mb-8">
                     <div>
-                      <h2 className="text-2xl font-semibold text-foreground">
+                      <h2 className="text-2xl font-semibold text-black">
                         {selectedCategory ? selectedCategory : "Todos los productos"}
                       </h2>
                       <p className="text-muted-foreground text-sm mt-1">
@@ -218,76 +245,7 @@ export default function ProductsPage() {
 
       {/* Footer */}
        <footer className="py-12 autumn-gradient-1">
-        <div className="px-4 md:px-8 lg:px-12 max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-primary-foreground">
-            {/* Logo y descripción */}
-            <div className="space-y-4 col-span-1 md:col-span-2">
-              <div className="flex items-center gap-2 mb-4">
-                <Leaf className="h-8 w-8" />
-                <span className="text-2xl font-bold tracking-wider text-primary-foreground">AUTUMN</span>
-              </div>
-              <p className="text-primary-foreground/90 leading-relaxed">
-                Accesorios inspirados en los cálidos colores y la atmósfera acogedora del otoño.
-              </p>
-            </div>
-
-            {/* Enlaces rápidos */}
-            <div>
-              <h4 className="font-semibold text-lg mb-4 text-primary-foreground">Enlaces rápidos</h4>
-              <ul className="space-y-2">
-                <li>
-                  <Link href="#" className="text-primary-foreground/90 hover:text-primary hover:underline transition-all block py-1">
-                    Inicio
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#productos" className="text-primary-foreground/90 hover:text-primary hover:underline transition-all block py-1">
-                    Productos
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#nosotros" className="text-primary-foreground/90 hover:text-primary hover:underline transition-all block py-1">
-                    Nosotros
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#contacto" className="text-primary-foreground/90 hover:text-primary hover:underline transition-all block py-1">
-                    Contacto
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Contacto */}
-            <div>
-              <h4 className="font-semibold text-lg mb-4 text-primary-foreground">Contacto</h4>
-              <ul className="space-y-2 text-primary-foreground/90">
-                <li className="flex items-center gap-2 py-1">
-                  <MapPin className="h-4 w-4" />
-                  Ciudad Guayana
-                </li>
-                <li className="py-1">
-                  <Mail className="h-4 w-4 inline-block mr-2" />
-                  <a href="https://linktr.ee/autumn.pzo" target="_blank" rel="noopener noreferrer" 
-                    className="text-primary-foreground/90 hover:text-primary hover:underline transition-all">
-                    autumn.pzo
-                  </a>
-                </li>
-                <li className="flex items-center gap-2 py-1">
-                  <Phone className="h-4 w-4" />
-                  +58 0414-8738350
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Copyright centrado */}
-          <div className="border-t border-primary-foreground/30 mt-12 pt-8 text-center">
-            <p className="text-primary-foreground/80 text-sm">
-              &copy; {new Date().getFullYear()} AUTUMN. Todos los derechos reservados.
-            </p>
-          </div>
-        </div>
+        <FooterShop/>
       </footer>
     </div>
   )

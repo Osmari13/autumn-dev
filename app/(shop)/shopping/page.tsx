@@ -25,7 +25,7 @@ export default function CartPage() {
   }
 
   // ✅ WhatsApp número y funciones
-  const whatsappNumber = "584249128662" // +58 414-8738350
+  const whatsappNumber = "584148738350" // +58 414-8738350
   
   // Generar mensaje de WhatsApp
   const generateWhatsAppMessage = () => {

@@ -10,7 +10,7 @@ export default function Header() {
 
   const count = items.reduce((acc, item) => acc + item.quantity, 0)
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-sm">
+    <header className="sticky top-0 z-40 border-b bg-white dark:bg-black shadow-sm">
       <div className="px-4 md:px-8 lg:px-12 max-w-7xl mx-auto flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <Leaf className="h-6 w-6 text-primary" />
@@ -30,18 +30,23 @@ export default function Header() {
             Contacto
           </Link>
         </nav>
-        <div className="flex items-center gap-4">
-          <Button asChild variant="ghost" className="relative hidden md:flex">
+        {/* HACER QUE SE VEA EN LA VERSION MOBILE EL BOTON DE CARRITO */}
+        <div className="flex items-center gap-2 md:gap-4">
+          <Button asChild variant="ghost" className="relative flex items-center justify-center p-2 md:px-4">
             <Link href="/shopping" className="flex items-center gap-2">
-              <ShoppingBag className="h-5 w-5" />
-              Carrito
+    
+          <ShoppingBag className="h-5 w-5" />
 
-              {count > 0 && (
-                <span className="absolute -top-2 -right-2 min-w-[18px] h-[18px] rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center px-1 animate-in zoom-in duration-150">
-                  {count}
-                </span>
-              )}
-            </Link>
+          {/* SOLO en desktop */}
+          <span className="hidden md:inline">Carrito</span>
+
+          {count > 0 && (
+            <span className="absolute -top-2 -right-2 min-w-[20px] h-[20px] rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center px-1 z-50">
+              {count}
+            </span>
+          )}
+          
+        </Link>
           </Button>
         </div>
       </div>
