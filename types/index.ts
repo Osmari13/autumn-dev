@@ -67,6 +67,8 @@ export type Article = {
   tag: string | null
   provider: Provider
   category: Category
+  categoryId: string
+  providerId:string
   // relación N‑N via tabla pivote
   transactionItems?: TransactionItem[]
 }
