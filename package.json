@@ -7,14 +7,12 @@
     "schema": "prisma/schema.prisma"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "prisma generate && next build",
-    "start": "next start",
-    "lint": "next lint"
+    "build": "next build",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
-    "@prisma/client": "6.18.0",
+    "@prisma/client": "5.22.0",
     "@radix-ui/react-avatar": "^1.1.0",
     "@radix-ui/react-checkbox": "^1.1.2",
     "@radix-ui/react-collapsible": "^1.1.0",
@@ -76,7 +74,7 @@
     "tailwindcss": "^3.4.1",
     "tsx": "^4.19.1",
     "typescript": "^5",
-    "prisma": "6.18.0"
+    "prisma": "5.22.0"
   },
   "@snaplet/seed": {
     "config": "prisma\\seed\\seed.config.ts"
