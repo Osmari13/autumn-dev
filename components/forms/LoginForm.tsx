@@ -16,7 +16,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { signIn, useSession } from 'next-auth/react'
+import { getSession, signIn, useSession } from 'next-auth/react'
 import { toast } from "sonner";
 
 const formSchema = z.object({
@@ -48,24 +48,42 @@ const LoginForm
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
       setIsLoading(true);
-      const res = await signIn("credentials", {
-        username: values.username,
-        password: values.password,
-        redirect: false,
-      })
-      if (res?.error) {
-        setIsLoading(false)
-        toast.error("Ooops!", {
-          description: `${res.error}`,
-          position: "bottom-left"
+      try{
+
+        const res = await signIn("credentials", {
+          username: values.username,
+          password: values.password,
+          redirect: false,
+        })
+        if (res?.error) {
+          setIsLoading(false)
+          toast.error("Ooops!", {
+            description: `${res.error}`,
+            position: "bottom-left"
+          }
+          )
+        } else {
+          const sessionFresca = await getSession();
+
+          setIsLoading(false); // Ya podemos quitar el estado de carga
+
+          if (sessionFresca?.user?.user_role === 'ADMIN') {
+            router.refresh(); 
+            router.push('/dashboard');
+          } else {
+            router.push('/');
+          }
+          // toast.success("¡Bienvenido!");
+          // window.location.href = '/dashboard';
+
         }
-        )
-      } else {
-        setIsLoading(false)
-        if (session?.user.user_role === 'ADMIN') {
-          router.push('/dashboard')
-        } 
+
+      }catch(error){
+        setIsLoading(false);
+        toast.error("Error al iniciar sesión. Por favor, inténtelo de nuevo.");
+        return;
       }
+      
     }
 
     return (
