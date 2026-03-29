@@ -222,7 +222,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
           console.log("Errores de validación:", errors);
         }
       )}>
-        <div className='flex flex-col gap-6'>            
+        <div className='flex flex-col gap-6 max-h-[70vh] md:max-h-none overflow-y-auto pr-2 custom-scrollbar'>            
           <div id="client-provider" className="flex flex-col md:flex-row gap-6">
             <FormField
               control={form.control}
@@ -237,7 +237,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "w-[230px] justify-between",
+                            "w-full md:w-[230px] justify-between",
                             !field.value && "text-muted-foreground"
                           )}
                         >
@@ -255,7 +255,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
                       </FormControl>
 
                     </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0">
+                    <PopoverContent className="w-full p-0">
                       <Command>
                         <CommandInput placeholder="Busque una categoria..." />
                         <RegisterCategoryDialog />
@@ -314,7 +314,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "w-[200px] justify-between",
+                            "w-full md:w-[200px] justify-between",
                             !field.value && "text-muted-foreground"
                           )}
                         >
@@ -333,7 +333,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
                       </FormControl>
 
                     </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0">
+                    <PopoverContent className="w-full p-0">
                       <Command>
                         <CommandInput placeholder="Busque su proveedor..." />
                         <RegisterProviderDialog />
@@ -389,7 +389,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
                 <FormItem>
                   <FormLabel className="font-bold">Nombre</FormLabel>
                   <FormControl>
-                    <Input type="text" className="w-[200px] shadow-none border-b border-r-0 border-t-0 border-l-0" placeholder="Topo" {...field} />
+                    <Input type="text" className="w-full shadow-none border-b border-r-0 border-t-0 border-l-0" placeholder="Topo" {...field} />
                   </FormControl>
                   <FormDescription>
                     Nombre del articulo
@@ -407,7 +407,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
                 <FormItem>
                   <FormLabel className="font-bold">Serial</FormLabel>
                   <FormControl>
-                    <Input className="w-[200px] shadow-none border-b-1 border-r-0 border-t-0 border-l-0" placeholder="AS1235" {...field} />
+                    <Input className="w-full shadow-none border-b-1 border-r-0 border-t-0 border-l-0" placeholder="AS1235" {...field} />
                   </FormControl>
                   <FormDescription>
                     Serial del articulo

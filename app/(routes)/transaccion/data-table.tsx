@@ -67,7 +67,7 @@ export function DataTable<TData, TValue>({
         <div className="flex gap-x-2 items-center">
 
              <Button
-                onClick={() => router.push("/catalogo/transaccion/registrar_transaccion")}
+                onClick={() => router.push("/transaccion/registrar_transaccion")}
                 className="h-8"
               >
                 <Plus className="mr-2 h-4 w-4" />

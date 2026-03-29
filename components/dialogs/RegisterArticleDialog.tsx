@@ -21,7 +21,7 @@ export function RegisterArticleDialog() {
       <DialogTrigger asChild>
         <Button variant="outline" className="font-bold">Registrar Articulo</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-xl max-h-[90vh]">
+      <DialogContent className="sm:max-w-xl max-h-[90vh] bg-white dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-700 rounded-lg">
         <DialogHeader>
           <DialogTitle>Registrar</DialogTitle>
           <DialogDescription>

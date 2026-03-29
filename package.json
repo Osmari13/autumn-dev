@@ -7,7 +7,10 @@
     "schema": "prisma/schema.prisma"
   },
   "scripts": {
+    "dev": "next dev",
     "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
     "postinstall": "prisma generate"
   },
   "dependencies": {
