@@ -1,4 +1,6 @@
 import db from "@/lib/db";
+import { authOptions } from "@/lib/auth";
+import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 // export async function POST(request: Request) {
@@ -26,38 +28,44 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const transaction = await db.$transaction(async (tx) => {
-      const data = await request.json();
-  
-      // 1. Crear la transacción principal
-      const newTransaction = await tx.transaction.create({
-        data: {
-          reference: data.reference || null,
-          subtotal: data.subtotal,
-          total: data.total,
-          status: data.status,
-          clientId: data.clientId,
-          registered_by: data.registered_by,
-          transaction_date: data.transaction_date,
-        },
-        include: {
-          items: true, // incluir ítems creados
-          client: true
-        }
-      });
+    const [data, session] = await Promise.all([
+      request.json(),
+      getServerSession(authOptions),
+    ]);
 
-      // 2. Crear TransactionItems relacionados (nested writes)
-      await tx.transactionItem.createMany({
-        data: data.items.map((item: any) => ({
-          transactionId: newTransaction.id,
-          articleId: item.articleId,
-          quantity: item.quantity,
-          priceUnit: item.priceUnit,
-          subtotal: item.subtotal,
-        }))
-      });
-      return newTransaction;
+    const registeredBy = session?.user?.username?.trim() || data.registered_by?.trim();
+
+    if (!registeredBy) {
+      return NextResponse.json(
+        { message: "No se pudo identificar el usuario autenticado." },
+        { status: 401 }
+      );
+    }
+
+    const transaction = await db.transaction.create({
+      data: {
+        reference: data.reference?.trim() || null,
+        subtotal: data.subtotal,
+        total: data.total,
+        status: data.status,
+        clientId: data.clientId,
+        registered_by: registeredBy,
+        transaction_date: data.transaction_date,
+        items: {
+          create: data.items.map((item: any) => ({
+            articleId: item.articleId,
+            quantity: item.quantity,
+            priceUnit: item.priceUnit,
+            subtotal: item.subtotal,
+          })),
+        },
+      },
+      include: {
+        items: true,
+        client: true,
+      },
     });
+
     return NextResponse.json(transaction);
   } catch (error) {
     console.error("Error creating transaction:", error);

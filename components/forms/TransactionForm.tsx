@@ -20,7 +20,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon, Check, ChevronsUpDown, Loader2, RotateCw } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { getSession, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useForm } from 'react-hook-form';
 import { toast } from "sonner";
@@ -81,7 +81,7 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
   const [items, setItems] = useState<TransactionItemForm[]>([]);
   const [paid, setPaid] = useState<Payment | null>(null);
   const [selectedArticleId, setSelectedArticleId] = useState<string | null>(null);
-  const [quantityInput, setQuantityInput] = useState<number>(1);
+  const [quantityInput, setQuantityInput] = useState("1");
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -115,6 +115,17 @@ const TransactionForm = ({ id, onClose, isEditing = false }: FormProps) => {
   const onResetTransactionForm = () => {
     form.reset()
   }
+
+  const handleQuantityInputChange = (value: string) => {
+    const digitsOnly = value.replace(/\D/g, "");
+
+    if (!digitsOnly) {
+      setQuantityInput("");
+      return;
+    }
+
+    setQuantityInput(digitsOnly.replace(/^0+(?=\d)/, ""));
+  };
  
   const addArticleToTransaction = (articleId: string, quantity: number) => {
     const existing = items.find(item => item.articleId === articleId);
@@ -170,7 +181,13 @@ const updateTotals = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const registered_by = session?.user.username || "";
+      const activeSession = session ?? await getSession();
+      const registered_by = activeSession?.user?.username?.trim() || "";
+
+      if (!registered_by) {
+        toast.error("No se pudo identificar el usuario autenticado");
+        return;
+      }
 
       const total = parseFloat(values.total);
       const amount = parseFloat(values.amount || "0");
@@ -356,20 +373,23 @@ const updateTotals = () => {
                   <div className="flex-1">
                     <FormLabel>Cantidad</FormLabel>
                     <Input
-                      type="number"
-                      min={1}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       placeholder="Cantidad"
                       value={quantityInput}
-                      onChange={(e) => setQuantityInput(Number(e.target.value))}
+                      onChange={(e) => handleQuantityInputChange(e.target.value)}
                     />
                   </div>
                   <Button
                     type="button"
                     className="self-end"
                     onClick={() => {
-                      if (selectedArticleId && quantityInput > 0) {
-                        addArticleToTransaction(selectedArticleId, quantityInput)
-                        setQuantityInput(1)
+                      const parsedQuantity = Number.parseInt(quantityInput, 10)
+
+                      if (selectedArticleId && parsedQuantity > 0) {
+                        addArticleToTransaction(selectedArticleId, parsedQuantity)
+                        setQuantityInput("1")
                       }
                     }}
                   >
