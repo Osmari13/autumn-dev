@@ -68,14 +68,14 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
       );
     }
 
-    // Delete the branch by its ID
-    const deletedClient = await db.client.delete({
+    // Delete the category by its ID
+    const deletedCategory = await db.category.delete({
       where: { id },
     });
 
     return NextResponse.json({
-      message: 'Sucursal eliminada exitosamente',
-      deletedClient,
+      message: 'Categoria eliminada exitosamente',
+      deletedCategory,
     });
   } catch (error) {
     console.error('Error al eliminar la cliente:', error);
@@ -98,20 +98,17 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
     const { id } = params
 
-    // Check if the branch with the given name already exists (except for the current branch)
-
-    // Update the branch
-    const updatedClient = await db.client.update({
+    // Update the category
+    const updatedCategory = await db.category.update({
       where: { id },
       data: {
-        first_name: data.first_name,
-        last_name: data.last_name ,
-        phone_number: data.phone_number ?? null,
+        name: data.name,
+        description: data.description ?? null,
         updated_by: data.updated_by ?? null,
       },
     });
 
-    return NextResponse.json(updatedClient);
+    return NextResponse.json(updatedCategory);
   } catch (error) {
     console.error("Error al actualizar la cliente:", error);
     return NextResponse.json(
