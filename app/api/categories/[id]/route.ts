@@ -104,7 +104,6 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       data: {
         name: data.name,
         description: data.description ?? null,
-        updated_by: data.updated_by ?? null,
       },
     });
 
