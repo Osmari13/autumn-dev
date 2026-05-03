@@ -23,7 +23,11 @@ export async function GET(request: Request) {
   try {
     const article = await db.article.findUnique({
       where: {
-        id: id, // Ensure the ID is a number
+        id: id,
+      },
+      include: {
+        category: { select: { id: true, name: true } },
+        provider: { select: { id: true, name: true } },
       },
     });
 

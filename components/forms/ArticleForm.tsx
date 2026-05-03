@@ -106,7 +106,7 @@ const ArticleForm = ({ id, onClose, isEditing = false }: FormProps) => {
         serial: data.serial,
         quantity: data.quantity.toString(),
         priceUnit: data.priceUnit.toString(),
-        price: data.price.toString(),
+        price: (data.quantity * data.priceUnit).toFixed(2),
         image: data.image ?? "",
         tag: data.tag ?? "",
         providerId: data.provider?.id ?? "",
