@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { Ellipsis, Loader2, LogOut } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -15,6 +16,7 @@ import {
 import { CollapseMenuButton } from "./CollapsableMenuButton";
 import { getMenuList } from "@/lib/menu-list";
 import { signOut, useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 interface MenuProps {
   isOpen: boolean | undefined;
@@ -22,8 +24,27 @@ interface MenuProps {
 
 export function Menu({ isOpen }: MenuProps) {
   const { data: session, status } = useSession();
+  const router = useRouter();
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const pathname = usePathname();
+
+  const handleSignOut = async () => {
+    try {
+      setIsSigningOut(true);
+
+      const result = await signOut({
+        redirect: false,
+        callbackUrl: "/login",
+      });
+
+      router.refresh();
+      window.location.href = result?.url || "/login";
+    } catch {
+      toast.error("No se pudo cerrar sesión. Inténtelo nuevamente.");
+      setIsSigningOut(false);
+    }
+  };
 
   if (status === "loading") {
     return (
@@ -120,7 +141,8 @@ export function Menu({ isOpen }: MenuProps) {
               <Tooltip delayDuration={100}>
                 <TooltipTrigger asChild>
                   <button
-                    onClick={() => signOut()}
+                    onClick={handleSignOut}
+                    disabled={isSigningOut}
                     className={cn(
                       "w-full flex items-center h-10 px-3 rounded-lg transition-all duration-200",
                       "text-[#A0856E] dark:text-[#5A4E46] hover:text-[#6B4D37] dark:hover:text-[#9A8878] hover:bg-[#E8D9C8] dark:hover:bg-white/[0.04]",
@@ -137,7 +159,7 @@ export function Menu({ isOpen }: MenuProps) {
                         isOpen === false ? "opacity-0 hidden" : "opacity-100"
                       )}
                     >
-                      Cerrar sesión
+                      {isSigningOut ? "Cerrando sesión..." : "Cerrar sesión"}
                     </p>
                   </button>
                 </TooltipTrigger>
