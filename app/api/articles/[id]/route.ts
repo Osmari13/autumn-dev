@@ -75,12 +75,31 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
       );
     }
 
-    const article = await db.article.findUnique({ where: { id } });
+    const article = await db.article.findUnique({
+      where: { id },
+      include: {
+        transactionItems: {
+          select: { id: true },
+          take: 1,
+        },
+      },
+    });
 
     if (!article) {
       return NextResponse.json(
         { message: "Artículo no encontrado." },
         { status: 404 }
+      );
+    }
+
+    if (article.transactionItems.length > 0) {
+      return NextResponse.json(
+        {
+          message: "No se puede eliminar el artículo porque ya tiene transacciones asociadas.",
+        },
+        {
+          status: 409,
+        }
       );
     }
 

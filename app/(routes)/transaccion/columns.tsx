@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { convertAmountFromMiliunits } from "@/lib/utils"
 import {Transaction } from "@/types"
 import { ColumnDef } from "@tanstack/react-table"
-import { CalendarDays } from "lucide-react"
+import { CalendarDays, Package } from "lucide-react"
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
@@ -32,22 +32,45 @@ export const columns: ColumnDef<Transaction>[] = [
     cell: ({ row }) => {
       const items = row.original.items || []
       if (!items.length) {
+        return <div className="italic text-muted-foreground">Sin artículos</div>
+      }
+      if (items.length === 1) {
         return (
           <div className="italic text-muted-foreground">
-            Sin artículos
+            {items[0].article.name}
+            <span className="text-xs ml-1 text-muted-foreground/60">/ {items[0].article.serial}</span>
           </div>
         )
       }
-
-      const label =
-        items.length === 1
-          ? `${items[0].article.name} / ${items[0].article.serial}`
-          : `${items[0].article.name} (+${items.length - 1} más)`
-
       return (
-        <div className="italic text-muted-foreground">
-          {label}
-        </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button className="flex items-center gap-1.5 italic text-muted-foreground hover:text-foreground transition-colors">
+              <span>{items[0].article.name}</span>
+              <span className="inline-flex items-center gap-0.5 text-xs font-semibold bg-muted px-1.5 py-0.5 rounded-full">
+                <Package className="size-3" />
+                +{items.length - 1}
+              </span>
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-80 p-3">
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">Artículos</p>
+              {items.map((item) => (
+                <div key={item.id} className="flex items-center justify-between gap-4 text-sm">
+                  <div>
+                    <p className="font-medium">{item.article.name}</p>
+                    <p className="text-xs text-muted-foreground">{item.article.serial}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="font-semibold">x{item.quantity}</p>
+                    <p className="text-xs text-muted-foreground">${item.priceUnit} c/u</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
       )
     },
   },

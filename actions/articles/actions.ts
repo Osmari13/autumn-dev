@@ -106,9 +106,13 @@ export const useDeleteArticle = () => {
         description: "¡El Articulo ha sido eliminada correctamente!"
       });
     },
-    onError: () => {
+    onError: (error: unknown) => {
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.message ?? "¡Hubo un error al eliminar El Articulo!"
+        : "¡Hubo un error al eliminar El Articulo!";
+
       toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar El Articulo!"
+        description: message,
       });
     },
   });

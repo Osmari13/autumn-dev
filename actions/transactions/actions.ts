@@ -50,7 +50,7 @@ export const useCreateTransaction = () => {
 
 export const useGetTransactions = () => {
   const transactionQuery = useQuery({
-    queryKey: ["transaction"],
+    queryKey: ["transactions"],
     queryFn: async () => {
       const {data} = await axios.get('/api/transactions'); // Adjust the endpoint as needed
       return data as Transaction[];
@@ -100,9 +100,13 @@ export const useDeleteTransaction = () => {
         description: "¡Las Transaccion ha sido eliminada correctamente!"
       });
     },
-    onError: () => {
+    onError: (error: unknown) => {
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.message || "¡Hubo un error al eliminar la Transaccion!"
+        : "¡Hubo un error al eliminar la Transaccion!";
+
       toast.error("Oops!", {
-        description: "¡Hubo un error al eliminar la Transaccion!"
+        description: message,
       });
     },
   });

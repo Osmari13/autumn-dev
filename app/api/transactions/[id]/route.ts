@@ -82,12 +82,42 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
       );
     }
 
-    const deletedTransaction= await db.transaction.delete({
+    const transaction = await db.transaction.findUnique({
       where: { id },
+      include: {
+        payments: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (!transaction) {
+      return NextResponse.json(
+        {
+          message: "Transacción no encontrada.",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    const deletedTransaction = await db.$transaction(async (tx) => {
+      if (transaction.payments.length > 0) {
+        await tx.payment.deleteMany({
+          where: { transactionId: id },
+        });
+      }
+
+      return tx.transaction.delete({
+        where: { id },
+      });
     });
 
     return NextResponse.json({
-      message: 'trasanccion eliminada exitosamente',
+      message: 'Transacción eliminada exitosamente',
       deletedTransaction,
     });
   } catch (error) {
