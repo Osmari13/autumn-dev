@@ -1,6 +1,9 @@
 import db from "@/lib/db";
 import { Article } from "@/types";
 import { NextResponse } from "next/server";
+import { UTApi } from "uploadthing/server";
+
+const utapi = new UTApi();
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -68,7 +71,28 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
       );
     }
 
-    const deletedArticle= await db.article.delete({
+    const article = await db.article.findUnique({ where: { id } });
+
+    if (!article) {
+      return NextResponse.json(
+        { message: "Artículo no encontrado." },
+        { status: 404 }
+      );
+    }
+
+    // Delete image from UploadThing if it exists
+    if (article.image) {
+      try {
+        // UploadThing file key is the last segment of the URL
+        const fileKey = article.image.split("/").pop();
+        if (fileKey) await utapi.deleteFiles(fileKey);
+      } catch (utError) {
+        console.error("Error al eliminar imagen de UploadThing:", utError);
+        // Non-fatal: proceed with article deletion
+      }
+    }
+
+    const deletedArticle = await db.article.delete({
       where: { id },
     });
 
@@ -96,6 +120,19 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     const data = await request.json()
 
     const { id } = params
+
+    // If a new image is being set, delete the old one from UploadThing
+    if (data.image) {
+      const existing = await db.article.findUnique({ where: { id }, select: { image: true } });
+      if (existing?.image && existing.image !== data.image) {
+        try {
+          const fileKey = existing.image.split("/").pop();
+          if (fileKey) await utapi.deleteFiles(fileKey);
+        } catch (utError) {
+          console.error("Error al eliminar imagen anterior de UploadThing:", utError);
+        }
+      }
+    }
 
     const updatedArticle = await db.article.update({
       where: { id },
