@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import { ChartNoAxesCombined, LayoutGrid, Loader2, LogOut, User } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -23,32 +21,12 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { signOut, useSession } from "next-auth/react";
-import { toast } from "sonner";
 
 export function UserNav() {
 
   const { data: session } = useSession()
   const username = session?.user?.username?.trim() ?? "";
   const initials = username.slice(0, 2).toUpperCase();
-  const router = useRouter();
-  const [isSigningOut, setIsSigningOut] = useState(false);
-
-  const handleSignOut = async () => {
-    try {
-      setIsSigningOut(true);
-
-      const result = await signOut({
-        redirect: false,
-        callbackUrl: "/login",
-      });
-
-      router.refresh();
-      window.location.href = result?.url || "/login";
-    } catch {
-      toast.error("No se pudo cerrar sesión. Inténtelo nuevamente.");
-      setIsSigningOut(false);
-    }
-  };
 
   return (
     <DropdownMenu>
@@ -95,9 +73,9 @@ export function UserNav() {
           
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="hover:cursor-pointer" onClick={handleSignOut} disabled={isSigningOut}>
+        <DropdownMenuItem className="hover:cursor-pointer" onClick={() => signOut()}>
           <LogOut className="w-4 h-4 mr-3 text-muted-foreground" />
-          {isSigningOut ? "Cerrando sesión..." : "Cerrar sesión"}
+          Cerrar sesión
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
