@@ -626,10 +626,10 @@ const updateTotals = () => {
               {createTransaction.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Creando ticket...
+                  Creando Transaccion...
                 </>
               ) : (
-                "Crear Ticket"
+                "Crear Transaccion"
               )}
             </Button>
           </div>

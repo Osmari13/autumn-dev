@@ -10,13 +10,7 @@ const TransactionPage = () => {
   const router = useRouter()
 
   return (
-    <ContentLayout title="Transacción">
-      <div className="text-center mt-4">
-        <h1 className="text-5xl font-bold mb-3">Registro de Transacción</h1>
-        <p className="text-muted-foreground italic text-sm">
-          Rellene los diferentes datos para el registro de una transacción
-        </p>
-      </div>
+    <ContentLayout title="Transacción" description="Rellene los datos para el registro de una nueva transacción.">
       <TransactionForm
         onClose={() => router.push("/transaccion")}
         isEditing={false}

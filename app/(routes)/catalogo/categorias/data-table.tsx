@@ -62,23 +62,22 @@ export function DataTable<TData, TValue>({
 
   return (
     <div>
-      <div className="flex items-center py-4">
+      <div className="flex items-center pb-4 border-b border-[#EDE4D8] dark:border-white/[0.06] mb-1">
         <div className="flex gap-x-2 items-center">
             <RegisterCategoryDialog />
           {isFiltered && (
-            <Button
-              variant="ghost"
+            <button
               onClick={() => table.resetColumnFilters()}
-              className="h-8 px-2 lg:px-3"
+              className="flex items-center gap-1.5 h-8 px-3 rounded text-[11px] text-[#A0856E] dark:text-[#6A5A50] hover:text-[#8B4513] dark:hover:text-[#C9A87C] hover:bg-[#F0E4D4] dark:hover:bg-white/[0.06] transition-colors border border-[#E0D4C8] dark:border-white/[0.1]"
             >
+              <ListRestart className="h-3 w-3" />
               Reiniciar
-              <ListRestart className="ml-2 h-4 w-4" />
-            </Button>
+            </button>
           )}
         </div>
         <DataTableViewOptions table={table} />
       </div>
-      <div className="rounded-md border mb-4">
+      <div className="mb-6">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

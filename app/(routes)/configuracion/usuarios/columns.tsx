@@ -39,7 +39,7 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader filter column={column} title='Nombre de Usuario' />
     ),
     cell: ({ row }) => {
-      return <div className="text-center font-bold">{row.original.username}</div>
+      return <div className="font-medium">{row.original.username}</div>
     },
   },
   {
@@ -48,7 +48,7 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader filter column={column} title='Rol del Usuario' />
     ),
     cell: ({ row }) => {
-      return <div className="text-center font-bold">{row.original.user_role}</div>
+      return <div className="font-medium">{row.original.user_role}</div>
     },
   },
   {

@@ -64,17 +64,10 @@ export default function DashboardPage() {
   );
 
   return (
-      <ContentLayout title='Dashboard'>
+      <ContentLayout title='Dashboard' description='Estadísticas de gastos por proveedor, ganancias e ingresos pendientes.'>
         <ProtectedRoute roles={['ADMIN']}>
           <>
             <div className="space-y-6 p-6">
-              {/* Título */}
-              <div>
-                <h1 className="text-2xl font-bold text-amber-500">Dashboard Financiero</h1>
-                <p className="text-sm text-muted-foreground">
-                  Estadísticas de gastos por proveedor, ganancias e ingresos pendientes.
-                </p>
-              </div>
 
               {/* Cards resumen */}
               <section className="grid gap-4 md:grid-cols-3">

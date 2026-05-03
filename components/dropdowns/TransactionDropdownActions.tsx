@@ -45,15 +45,17 @@ const TransactionDropdownActions = ({ id }: { id: string }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center" className="flex gap-2 justify-center">
           {/* Realizar la funcion de transaccion */}
-          {/* Transaction Option */}
-          <DropdownMenuItem  onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation(); 
-              setIsDialogOpen1(true);
-              setIsDropdownMenuOpen(false);
-            }}>
-            <HandCoins className="size-6 text-green-600 cursor-pointer" />
-          </DropdownMenuItem>
+          {/* Transaction Option — solo visible si no está PAGADO */}
+          {transaction?.status !== "PAGADO" && (
+            <DropdownMenuItem onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation(); 
+                setIsDialogOpen1(true);
+                setIsDropdownMenuOpen(false);
+              }}>
+              <HandCoins className="size-6 text-green-600 cursor-pointer" />
+            </DropdownMenuItem>
+          )}
 
           {/* Edit Option */}
           {/* <DropdownMenuItem onClick={() => {

@@ -11,39 +11,13 @@ import { ColumnDef } from "@tanstack/react-table"
 
 
 export const columns: ColumnDef<Provider>[] = [
-    {
-        id: "select",
-        header: ({ table }) => (
-          <div className="w-full flex justify-center">
-            <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-            aria-label="Select all"
-          />
-          </div>
-        ),
-        cell: ({ row }) => (
-          <div className="w-full flex justify-center">
-            <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-          </div>
-        ),
-        enableSorting: false,
-        enableHiding: false,
-      },
   {
     accessorKey: "phone_number",
     header: ({column}) => (
         <DataTableColumnHeader filter column={column} title='Numero de Tlf' />
     ),
     cell: ({ row }) => {
-        return <div className="text-center font-bold">{row.original.phone_number}</div>
+        return <div className="font-medium">{row.original.phone_number}</div>
       },
   },
   {
@@ -52,7 +26,7 @@ export const columns: ColumnDef<Provider>[] = [
         <DataTableColumnHeader filter column={column} title='Nombre' />
     ),
     cell: ({ row }) => {
-        return <div className="text-center font-bold">{row.original.name}</div>
+        return <div className="font-medium">{row.original.name}</div>
       },
   },{
     accessorKey:"providerPayment",
@@ -60,7 +34,7 @@ export const columns: ColumnDef<Provider>[] = [
         <DataTableColumnHeader filter column={column} title='Pagos' />
     ),
     cell: ({ row }) => {
-        return <div className="text-center font-bold">${row.original.providerPayment?.reduce((acc, payment) => acc + payment.amount, 0) || 0}</div>
+        return <div className="font-medium">${row.original.providerPayment?.reduce((acc, payment) => acc + payment.amount, 0) || 0}</div>
       },
   },    
   {

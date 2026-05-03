@@ -18,6 +18,20 @@ export const useGetArticles = () => {
   };
 };
 
+export const useGetArticlesCount = () => {
+  const countQuery = useQuery({
+    queryKey: ["articles-count"],
+    queryFn: async () => {
+      const { data } = await axios.get('/api/articles/count');
+      return data.count as number;
+    },
+  });
+  return {
+    count: countQuery.data ?? 0,
+    loading: countQuery.isLoading,
+  };
+};
+
 
 export const useGetArticle = (id: string | null) => {
   const articleQuery = useQuery({

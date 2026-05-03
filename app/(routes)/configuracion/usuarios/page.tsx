@@ -10,12 +10,8 @@ import { Loader2 } from 'lucide-react'
 const UsersPage = () => {
   const { data, loading } = useGetUsers()
   return (
-    <ContentLayout title='Usuarios' >
+    <ContentLayout title='Usuarios' description='Administración de accesos y roles de los usuarios del sistema.'>
       <ProtectedRoute roles={['ADMIN', 'AUDITOR']}>
-        <div className="text-center mt-6">
-          <h1 className='text-5xl font-bold'>Usuarios</h1>
-          <p className="text-muted-foreground italic text-sm mt-2">Aquí puede llevar el control de los usuarios registrados en el sistema.</p>
-        </div>
         {
           loading && <Loader2 className='size-4 animate-spin' />
         }

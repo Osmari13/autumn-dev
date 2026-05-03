@@ -10,11 +10,7 @@ import { DataTable } from './data-table'
 const TransactionPage = () => {
     const {data: transaction, loading, error} = useGetTransactions()
     return (
-      <ContentLayout title='Transaccion'>
-          <div className="text-center mt-6">
-              <h1 className='text-5xl font-bold'>Transaccion</h1>
-              <p className="text-muted-foreground italic text-sm">Aquí puede llevar el control de las Transacciones que han sido registrado de los articulos en el sistema.</p>
-          </div>
+      <ContentLayout title='Transacciones' description='Historial completo de movimientos y transacciones de artículos.'>
           {
             loading && <div className='w-full flex justify-center'>
               <Loader2 className='size-12 animate-spin'/>

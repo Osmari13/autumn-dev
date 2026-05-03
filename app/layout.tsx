@@ -1,13 +1,19 @@
 import { Toaster } from "@/components/ui/sonner";
 import QueryClientContextProvider from "@/providers/QueryProvider";
 import { ThemeProvider } from "next-themes";
-import { Poppins } from "next/font/google";
+import { Poppins, Cormorant_Garamond } from "next/font/google";
 // @ts-ignore: side-effect import for global CSS (add a .d.ts file to declare '*.css' to fully fix)
 import "./globals.css";
 import ClientSessionProvider from "@/providers/AuthProvider";
 import { Metadata } from "next";
 
 const poppins = Poppins({ subsets: ["latin"], weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"] });
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-cormorant",
+});
 
 export const metadata: Metadata = {
   title: "Autumn",
@@ -23,7 +29,7 @@ export default function RootLayout({
     <html lang="en">
       <QueryClientContextProvider>
         <ClientSessionProvider>
-          <body className={`${poppins.className} antialiased`}>
+          <body className={`${poppins.className} ${cormorant.variable} antialiased`}>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
               <main>
                 {children}

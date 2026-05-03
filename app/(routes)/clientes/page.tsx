@@ -9,11 +9,7 @@ import { columns } from './columns'
 const ClientPage = () => {
   const { data: clients, loading, error } = useGetClients()
   return (
-    <ContentLayout title='Clientes'>
-      <div className="text-center mt-6">
-        <h1 className='text-5xl font-bold'>Clientes</h1>
-        <p className="text-muted-foreground italic text-sm mt-2">Aquí verá el registro de todos los clientes registrados en el sistema.</p>
-      </div>
+    <ContentLayout title='Clientes' description='Registro y seguimiento de todos los clientes en el sistema.'>
       {
         loading && <div className='w-full flex justify-center'>
           <Loader2 className='size-12 animate-spin' />

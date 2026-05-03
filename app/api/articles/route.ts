@@ -48,6 +48,9 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     const data = await db.article.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
       include: {
         category: {
           select: {

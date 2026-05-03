@@ -3,9 +3,11 @@
 import TransactionDropdownActions from "@/components/dropdowns/TransactionDropdownActions"
 import { DataTableColumnHeader } from "@/components/tables/DataTableHeader"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { convertAmountFromMiliunits } from "@/lib/utils"
 import {Transaction } from "@/types"
 import { ColumnDef } from "@tanstack/react-table"
+import { CalendarDays } from "lucide-react"
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
@@ -13,38 +15,12 @@ import { ColumnDef } from "@tanstack/react-table"
 
 export const columns: ColumnDef<Transaction>[] = [
   {
-    id: "select",
-    header: ({ table }) => (
-      <div className="w-full flex justify-center">
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className="w-full flex justify-center">
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      </div>
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
     accessorKey: "reference",
     header: ({ column }) => (
       <DataTableColumnHeader filter column={column} title="Descripcion" />
     ),
     cell: ({ row }) => (
-      <div className="text-center font-bold">{row.original.reference}</div>
+      <div className="font-medium">{row.original.reference}</div>
     ),
   },
   {
@@ -57,7 +33,7 @@ export const columns: ColumnDef<Transaction>[] = [
       const items = row.original.items || []
       if (!items.length) {
         return (
-          <div className="text-center italic text-muted-foreground">
+          <div className="italic text-muted-foreground">
             Sin artículos
           </div>
         )
@@ -69,7 +45,7 @@ export const columns: ColumnDef<Transaction>[] = [
           : `${items[0].article.name} (+${items.length - 1} más)`
 
       return (
-        <div className="text-center italic text-muted-foreground">
+        <div className="italic text-muted-foreground">
           {label}
         </div>
       )
@@ -87,7 +63,7 @@ export const columns: ColumnDef<Transaction>[] = [
         0
       )
       return (
-        <div className="text-center font-bold">
+        <div className="font-medium">
           {totalQty}
         </div>
       )
@@ -99,7 +75,7 @@ export const columns: ColumnDef<Transaction>[] = [
       <DataTableColumnHeader column={column} title="Precio Total" />
     ),
     cell: ({ row }) => (
-      <div className="text-center text-muted-foreground italic font-medium">
+      <div className="text-muted-foreground italic font-medium">
         ${row.original.total}
       </div>
     ),
@@ -113,7 +89,7 @@ export const columns: ColumnDef<Transaction>[] = [
       const client = row.original.client
       const debt = row.original.status === "PENDIENTE" ? row.original.total - row.original.payments.reduce((sum, payment) => sum + payment.amount, 0) : 0;
       return (
-        <div className="text-center font-medium">
+        <div className="font-medium">
           <div className="italic">{client.first_name} {client.last_name}</div>
           <div className={`font-bold ${debt === 0
             ? 'text-green-600 dark:text-green-400' 
@@ -127,12 +103,75 @@ export const columns: ColumnDef<Transaction>[] = [
     },
   },
   {
+    accessorKey: "transaction_date",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Fecha de Venta" />
+    ),
+    cell: ({ row }) => {
+      const date = row.original.transaction_date
+      return (
+        <div className="font-medium text-muted-foreground">
+          {date ? new Date(date).toLocaleDateString("es-VE", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
+        </div>
+      )
+    },
+  },
+  {
+    id: "payment_date",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Fecha de Pago" />
+    ),
+    cell: ({ row }) => {
+      const payments = row.original.payments || []
+      if (!payments.length) {
+        return <div className="text-muted-foreground">—</div>
+      }
+
+      const sorted = [...payments].sort(
+        (a, b) => new Date(b.paidAt).getTime() - new Date(a.paidAt).getTime()
+      )
+      const fmt = (d: Date) =>
+        new Date(d).toLocaleDateString("es-VE", { day: "2-digit", month: "short", year: "numeric" })
+
+      if (payments.length === 1) {
+        return <div className="font-medium text-muted-foreground">{fmt(sorted[0].paidAt)}</div>
+      }
+
+      return (
+        <Popover>
+          <PopoverTrigger asChild>
+            <button className="flex items-center gap-1.5 font-medium text-muted-foreground hover:text-foreground transition-colors group">
+              <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+              <span>{fmt(sorted[0].paidAt)}</span>
+              <span className="text-xs bg-muted text-muted-foreground rounded-full px-1.5 py-0.5 group-hover:bg-accent">
+                +{payments.length - 1}
+              </span>
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-56 p-3" align="start">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+              Fechas de pago
+            </p>
+            <ul className="space-y-1.5">
+              {sorted.map((payment, i) => (
+                <li key={payment.id} className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{fmt(payment.paidAt)}</span>
+                  <span className="font-medium">${payment.amount}</span>
+                </li>
+              ))}
+            </ul>
+          </PopoverContent>
+        </Popover>
+      )
+    },
+  },
+  {
     accessorKey: "status",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Estado" />
     ),
     cell: ({ row }) => (
-      <p className="text-center font-bold">{row.original.status}</p>
+      <p className="font-medium">{row.original.status}</p>
     ),
   },
   {

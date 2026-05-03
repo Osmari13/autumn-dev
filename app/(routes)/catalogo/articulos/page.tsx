@@ -10,11 +10,7 @@ import { DataTable } from './data-table'
 const ArticlePage = () => {
     const {data: articles, loading, error} = useGetArticles()
     return (
-      <ContentLayout title='Articulos'>
-          <div className="text-center mt-6">
-              <h1 className='text-5xl font-bold'>Articulos</h1>
-              <p className="text-muted-foreground italic text-sm">Aquí puede llevar el control de los Articulos que han sido registrados en el sistema.</p>
-          </div>
+      <ContentLayout title='Articulos' description='Lleve el control de los artículos registrados en el sistema.'>
           {
             loading && <div className='w-full flex justify-center'>
               <Loader2 className='size-12 animate-spin'/>
