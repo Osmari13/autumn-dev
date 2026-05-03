@@ -21,6 +21,7 @@ import { z } from 'zod';
 
 import { useCreatePayment } from "@/actions/payment/actions";
 import { useUpdateStatusTransaction } from "@/actions/transactions/actions";
+import { useUploadThing } from "@/lib/uploadthing";
 import {
   Select,
   SelectContent,
@@ -53,6 +54,7 @@ interface FormProps {
 
 const PaymentTransactionForm = ({ payments , transaction, onClose}: FormProps) => {
   const { data: session } = useSession()
+  const { startUpload, isUploading } = useUploadThing("imageUploader");
   const [openPaidAt, setOpenPaidAt] = useState(false)
   const { updateStatusTransaction } = useUpdateStatusTransaction();
   const { createPayment } = useCreatePayment();
@@ -93,23 +95,16 @@ const PaymentTransactionForm = ({ payments , transaction, onClose}: FormProps) =
       return;
     }
     if (selectedFile) {
-      const formData = new FormData();
-      formData.append("image", selectedFile);
-
       try {
-        // Envía el archivo a tu API de subida de imágenes
-        const uploadResponse = await fetch("/api/upload-image", { // Crea esta API Route
-          method: "POST",
-          body: formData,
-        });
+        const uploadResult = await startUpload([selectedFile]);
+        const uploadedUrl = uploadResult?.[0]?.ufsUrl || uploadResult?.[0]?.url;
 
-        if (!uploadResponse.ok) {
+        if (!uploadedUrl) {
           throw new Error("Error al subir la imagen");
         }
 
-        const uploadData = await uploadResponse.json();
-        imageUrl = uploadData.imageUrl; // Asume que tu API devuelve la URL de la imagen
-        form.setValue("image", imageUrl ?? ""); // Actualiza el valor del formulario con la URL
+        imageUrl = uploadedUrl;
+        form.setValue("image", imageUrl ?? "");
       } catch (uploadError) {
         console.error("Error al subir la imagen:", uploadError);
         toast.error("Error al subir la imagen.", {
@@ -137,7 +132,8 @@ const PaymentTransactionForm = ({ payments , transaction, onClose}: FormProps) =
         amount,
         payMethod: values.payMethod || "PAGO_MOVIL",
         registered_by,
-        paidAt: values.paidAt || new Date()
+        paidAt: values.paidAt || new Date(),
+        image: imageUrl,
       });
      
       if (res){
@@ -322,11 +318,11 @@ const PaymentTransactionForm = ({ payments , transaction, onClose}: FormProps) =
         />
 
         {/* Botón de Envío */}
-      <Button disabled={createPayment.isPending} type="submit" className="w-full h-12 text-lg font-semibold">
-              {createPayment.isPending ? (
+      <Button disabled={createPayment.isPending || isUploading} type="submit" className="w-full h-12 text-lg font-semibold">
+              {createPayment.isPending || isUploading ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Creando Pago...
+                  {isUploading ? "Subiendo imagen..." : "Creando Pago..."}
                 </>
               ) : (
                 "Crear Pago"
